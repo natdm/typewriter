@@ -77,7 +77,7 @@ $ $GOPATH/bin/typewriter -dir ./your/models/directory -lang flow -v -out ./save/
 ___
 #### TODO:
 * ~~Bring all types from embedded types to root types~~ *DONE*
-* Ignore in notes
+* ~~Ignore in notes~~ *DONE* -- use @ignore
 * Type name overrides in tags for multiple languages
 * Flow
-  * Allow `strict` types
+  * ~~Allow `strict` types~~ *DONE* -- use @strict in notes above struct
