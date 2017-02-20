@@ -221,8 +221,8 @@ type alias Thing : {
 ---
 
 ### Example use in a package like [Ponzu](https://github.com/ponzu-cms/ponzu):
-`ponzu gen content review title:"string" body:"string" rating:"int" tags:"[]string" && \
-typewriter -file ./content/review.go -lang flow -out ./models.js`
+`$ ponzu gen content review title:"string" body:"string" rating:"int" tags:"[]
+string" && typewriter -file ./content/review.go -lang flow -out ./models.js`
 
 Ponzu: 
 

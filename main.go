@@ -31,7 +31,7 @@ func main() {
 	case "ts":
 		lang = template.Typescript
 	default:
-		log.Fatalln(fmt.Sprintf("language %s not supported", *langFlag))
+		log.Fatalln("Please pick a proper language ['elm', 'flow', 'ts']")
 	}
 
 	var out io.Writer
