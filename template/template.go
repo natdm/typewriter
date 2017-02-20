@@ -16,20 +16,11 @@ type Templater interface {
 	Template(w io.Writer, lang Language) error
 }
 
-// Kept outside the function so it can be changed for testing. Path here breaks in testing
-var templatepath = "./template/templates/%s"
-
-func newTemplate(name, path string) (*template.Template, error) {
-	return template.New(name).
-		Funcs(funcMap).
-		ParseFiles(fmt.Sprintf(templatepath, path))
-}
-
 var errNoType = errors.New("type not stored in package level type declaration")
 
 // Header is the file header
 func Header(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate("header.tmpl", fmt.Sprintf("%s/header.tmpl", lang))
+	tmpl, err := newTemplate(lang, header)
 	if err != nil {
 		return err
 	}
@@ -55,7 +46,7 @@ type PackageType struct {
 }
 
 func (t *PackageType) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate("declaration.tmpl", fmt.Sprintf("%s/declaration.tmpl", lang))
+	tmpl, err := newTemplate(lang, declaration)
 	if err != nil {
 		return err
 	}
@@ -77,7 +68,7 @@ type Basic struct {
 }
 
 func (t *Basic) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate("basic.tmpl", fmt.Sprintf("%s/basic.tmpl", lang))
+	tmpl, err := newTemplate(lang, basic)
 	if err != nil {
 		return err
 	}
@@ -90,7 +81,7 @@ type Map struct {
 }
 
 func (t *Map) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate("map_key.tmpl", fmt.Sprintf("%s/map_key.tmpl", lang))
+	tmpl, err := newTemplate(lang, mapKey)
 	if err != nil {
 		return err
 	}
@@ -100,7 +91,7 @@ func (t *Map) Template(w io.Writer, lang Language) error {
 	if err := t.Key.Template(w, lang); err != nil {
 		return err
 	}
-	tmpl, err = newTemplate("map_value.tmpl", fmt.Sprintf("%s/map_value.tmpl", lang))
+	tmpl, err = newTemplate(lang, mapValue)
 	if err != nil {
 		return err
 	}
@@ -111,7 +102,7 @@ func (t *Map) Template(w io.Writer, lang Language) error {
 	if err = t.Value.Template(w, lang); err != nil {
 		return err
 	}
-	tmpl, err = newTemplate("map_close.tmpl", fmt.Sprintf("%s/map_close.tmpl", lang))
+	tmpl, err = newTemplate(lang, mapClose)
 	if err != nil {
 		return err
 	}
@@ -124,7 +115,7 @@ type Array struct {
 }
 
 func (t *Array) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate("array_open.tmpl", fmt.Sprintf("%s/array_open.tmpl", lang))
+	tmpl, err := newTemplate(lang, arrayOpen)
 	if err != nil {
 		return err
 	}
@@ -134,7 +125,7 @@ func (t *Array) Template(w io.Writer, lang Language) error {
 	if err = t.Type.Template(w, lang); err != nil {
 		return err
 	}
-	tmpl, err = newTemplate("array_close.tmpl", fmt.Sprintf("%s/array_close.tmpl", lang))
+	tmpl, err = newTemplate(lang, arrayClose)
 	if err != nil {
 		return err
 	}
@@ -153,7 +144,7 @@ type Struct struct {
 }
 
 func (t *Struct) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate("struct_open.tmpl", fmt.Sprintf("%s/struct_open.tmpl", lang))
+	tmpl, err := newTemplate(lang, structOpen)
 	if err != nil {
 		return err
 	}
@@ -165,14 +156,14 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 			return err
 		}
 		if i < len(t.Fields)-1 {
-			tmpl, err = newTemplate("field_close.tmpl", fmt.Sprintf("%s/field_close.tmpl", lang))
+			tmpl, err := newTemplate(lang, fieldClose)
 			if err != nil {
 				return err
 			}
 			if err := tmpl.Execute(w, nil); err != nil {
 				return err
 			}
-			tmpl, err = newTemplate("comment.tmpl", fmt.Sprintf("%s/comment.tmpl", lang))
+			tmpl, err = newTemplate(lang, comment)
 			if err != nil {
 				return err
 			}
@@ -180,7 +171,7 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 				return err
 			}
 		} else {
-			tmpl, err = newTemplate("comment.tmpl", fmt.Sprintf("%s/comment.tmpl", lang))
+			tmpl, err := newTemplate(lang, comment)
 			if err != nil {
 				return err
 			}
@@ -190,7 +181,7 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 			Raw(w, "\n")
 		}
 	}
-	tmpl, err = newTemplate("struct_close.tmpl", fmt.Sprintf("%s/struct_close.tmpl", lang))
+	tmpl, err = newTemplate(lang, structClose)
 	if err != nil {
 		return err
 	}
@@ -210,7 +201,7 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	if jsonName != "" {
 		t.Name = jsonName
 	}
-	tmpl, err := newTemplate("field_name.tmpl", fmt.Sprintf("%s/field_name.tmpl", lang))
+	tmpl, err := newTemplate(lang, fieldName)
 	if err != nil {
 		return err
 	}
