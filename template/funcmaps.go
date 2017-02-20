@@ -27,9 +27,9 @@ var funcMap = template.FuncMap{
 	"updateFlowType": updateTypes(conversions[Flow]),
 	"updateElmType":  updateTypes(conversions[Elm]),
 	"updateTSType":   updateTypes(conversions[Typescript]),
-	"flowComment":    comment("//"),
-	"elmComment":     comment("--"),
-	"tsComment":      comment("//"),
+	"flowComment":    langComment("//"),
+	"elmComment":     langComment("--"),
+	"tsComment":      langComment("//"),
 }
 
 var conversions = map[Language][]string{
@@ -105,7 +105,7 @@ func updateTypes(t []string) func(string) string {
 	}
 }
 
-func comment(prefix string) func(string) string {
+func langComment(prefix string) func(string) string {
 	return func(c string) string {
 		if c != "" {
 			return fmt.Sprintf(`%s %s`, prefix, c)
