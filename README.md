@@ -55,3 +55,4 @@ $ $GOPATH/bin/typewriter -dir ./your/models/directory -lang flow -v -out ./save/
 ___
 #### TODO:
 * More tests
+* Parse types used from other packages
