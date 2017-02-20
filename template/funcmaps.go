@@ -116,7 +116,7 @@ func typeComment(prefix string) func(string) string {
 			sp := strings.Split(c, "\n")
 			for i, v := range sp {
 				if i != len(sp)-1 {
-					out += prefix + v + "\n"
+					out += prefix + " " + v + "\n"
 				}
 			}
 			return out
@@ -128,7 +128,7 @@ func typeComment(prefix string) func(string) string {
 func langComment(prefix string) func(string) string {
 	return func(c string) string {
 		if c != "" {
-			return prefix + c
+			return prefix + " " + c
 		}
 		return ""
 	}

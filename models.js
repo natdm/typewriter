@@ -22,6 +22,10 @@ export type Embedded = {
 	age: number
 }
 
+export type ExternalEmbedded = { 
+	name: string
+}
+
 export type MyNumber = number
 
 //Nested defaults to the closest "Object" type in any language. Utilize the `tw` tag if needed.

@@ -15,10 +15,6 @@ func TestTemplateTestSuite(t *testing.T) {
 	suite.Run(t, new(TemplateTestSuite))
 }
 
-func (s *TemplateTestSuite) SetupTest() {
-	templatepath = "./templates/%s"
-}
-
 func (s *TemplateTestSuite) TestFlowTemplatePackageTypes() {
 	p := &PackageType{
 		Name:    "Maps",
