@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -205,13 +206,37 @@ type Field struct {
 }
 
 func (t *Field) Template(w io.Writer, lang Language) error {
-	t.Name = getTag("json", t.Tag)
+	jsonName := strings.Split(getTag("json", t.Tag), ",")[0]
+	if jsonName != "" {
+		t.Name = jsonName
+	}
 	tmpl, err := newTemplate("field_name.tmpl", fmt.Sprintf("%s/field_name.tmpl", lang))
 	if err != nil {
 		return err
 	}
 	if err = tmpl.Execute(w, t); err != nil {
 		return err
+	}
+
+	// If there is an override type on the struct field
+	override := strings.Split(getTag("tw", t.Tag), ",")
+	switch len(override) {
+	case 2:
+		ptr, err := strconv.ParseBool(string(override[1]))
+		if err != nil {
+			log.WithError(err).Errorf("error parsing bool for type %s", t.Name)
+		}
+		t.Type = &Basic{
+			Type:    string(override[0]),
+			Pointer: ptr,
+		}
+	case 1:
+		if string(override[0]) != "" {
+			t.Type = &Basic{
+				Type:    string(override[0]),
+				Pointer: false,
+			}
+		}
 	}
 	return t.Type.Template(w, lang)
 }
@@ -222,10 +247,6 @@ func getTag(tag string, tags string) string {
 		bs := []byte(tags)
 		bs = bs[loc+len(tag)+2:]
 		loc = strings.Index(string(bs), "\"")
-		commaLoc := strings.Index(string(bs), ",")
-		if commaLoc > -1 && commaLoc < loc {
-			return string(bs[:commaLoc])
-		}
 		if loc == -1 {
 			return ""
 		}
