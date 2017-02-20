@@ -6,6 +6,8 @@ import (
 	"text/template"
 )
 
+// Language is a parsable language
+// stringer -type=Language
 type Language int
 
 // languages
@@ -14,18 +16,6 @@ const (
 	Flow
 	Elm
 )
-
-func (l Language) String() string {
-	switch l {
-	case Typescript:
-		return "typescript"
-	case Flow:
-		return "flow"
-	case Elm:
-		return "elm"
-	}
-	return ""
-}
 
 // custom types
 const (
