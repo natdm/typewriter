@@ -1,7 +1,6 @@
 package template
 
 import (
-	"log"
 	"strings"
 	"text/template"
 )
@@ -110,7 +109,6 @@ func updateTypes(t []string) func(string) string {
 
 func typeComment(prefix string) func(string) string {
 	return func(c string) string {
-		log.Println(c)
 		if c != "" {
 			out := ""
 			sp := strings.Split(c, "\n")

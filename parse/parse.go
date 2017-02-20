@@ -82,9 +82,6 @@ func Files(files []string, verbose bool) (map[string]*template.PackageType, erro
 			return nil, err
 		}
 
-		imports := findImports(f)
-		log.Println(imports)
-
 		comments := make(map[string]string)
 		for _, v := range f.Comments {
 			c := v.Text()
@@ -220,7 +217,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 				// No names on a type means it is embedded
 
 				str.Embedded = append(str.Embedded, string(bs[v.Type.Pos()-2:v.Type.End()-1]))
-				log.Printf("found embedded type: %s\n", string(bs[v.Type.Pos()-2:v.Type.End()-1]))
 				continue FIELDLOOP
 			}
 			if v.Names[0] == nil {
