@@ -83,7 +83,6 @@ func Files(files []string, verbose bool) (map[string]*template.PackageType, erro
 		}
 
 		imports := findImports(f)
-		log.Println(imports)
 
 		comments := make(map[string]string)
 		for _, v := range f.Comments {
