@@ -58,12 +58,13 @@ var elmTemplates = map[templateKey]string{
 -- http://www.github.com/natdm/typewriter
 
 `,
-	arrayOpen:   ` List`,
-	arrayClose:  ``,
-	basic:       ` {{updateElmType .Type}}`,
-	comment:     ` {{elmComment .Comment}}`,
-	declaration: `{{elmComment .Comment}}type alias {{.Name}} : `,
-	fieldClose:  `,`,
+	arrayOpen:  ` List`,
+	arrayClose: ``,
+	basic:      ` {{updateElmType .Type}}`,
+	comment:    ` {{elmComment .Comment}}`,
+	declaration: `
+{{elmTypeComment .Comment}}type alias {{.Name}} : `,
+	fieldClose: `,`,
 	fieldName: `	{{.Name}} :`,
 	mapClose:    ``,
 	mapKey:      `Dict `,
@@ -84,7 +85,7 @@ var flowTemplates = map[templateKey]string{
 	basic:      `{{if .Pointer}}?{{end}}{{updateFlowType .Type}}`,
 	comment:    `{{flowComment .Comment}}`,
 	declaration: `
-{{flowComment .Comment}}export type {{.Name}} = `,
+{{flowTypeComment .Comment}}export type {{.Name}} = `,
 	fieldClose: `, `,
 	fieldName: `
 	{{.Name}}: `,
@@ -105,13 +106,13 @@ var tsTemplates = map[templateKey]string{
 	basic:      `{{if .Pointer}}?{{end}}{{updateTSType .Type}}`,
 	comment:    `{{tsComment .Comment}}`,
 	declaration: `
-{{tsComment .Comment}}export type {{.Name}} = `,
+{{tsTypeComment .Comment}}type {{.Name}} = `,
 	fieldClose: `, `,
 	fieldName: `
 	{{.Name}}: `,
 	mapClose:    ` }`,
 	mapKey:      `{ [key: `,
 	mapValue:    `]: `,
-	structClose: `{{if .Strict}}|}{{else}}}{{end}}`,
-	structOpen:  `{{if .Strict}}{| {{else}}{ {{end}}`,
+	structClose: `}`,
+	structOpen:  `{`,
 }
