@@ -15,11 +15,11 @@ flow:
 
 elm:
 	$(GOBUILD) -v ./
-	./typewriter -dir ./stubs -lang elm
+	go build && ./typewriter -dir ./examples -lang elm -out ./models.js
 
 ts:
 	$(GOBUILD) -v ./
-	./typewriter -dir ./stubs -lang ts
+	go build && ./typewriter -dir ./examples -lang ts -out ./models.js
 
 testts:
 	$(GOBUILD) -v ./

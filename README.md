@@ -3,13 +3,13 @@
 ### Parse Go JSON-tagged types to other language types. Focused on front-end languages.
 
 
-Currently supports JavaScript Flow. In progress is Typescript and Elm.
+Currently supports JavaScript Flow, TypeScript, and (some) Elm.
 
-Please create an Issue for other requests, and examples of Go types to the requested language.
+For custom types, add the tag, `tw:"<CustomTypeName>,<PointerBool>"`
 
-For custom types, add this tag: `tw:"<CustomTypeName>,<PointerBool>"`
+Please create an Issue for requests, and include examples of Go types to the requested language.
 
-##### Currently under development. If there's a need for something that isn't on the TODO list, please make an issue.
+##### Currently under development. 
 
 ____
 ### Example:
@@ -137,8 +137,4 @@ $ $GOPATH/bin/typewriter -dir ./your/models/directory -lang flow -v -out ./save/
 
 ___
 #### TODO:
-* ~~Bring all types from embedded types to root types~~ *DONE*
-* ~~Ignore in notes~~ *DONE* -- use @ignore
-* ~~Type name overrides in tags for multiple languages~~ *DONE*
-* Flow
-  * ~~Allow `strict` types~~ *DONE* -- use @strict in notes above struct
+* More tests

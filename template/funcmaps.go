@@ -29,7 +29,7 @@ var funcMap = template.FuncMap{
 	"updateTSType":   updateTypes(conversions[Typescript]),
 	"flowComment":    comment("//"),
 	"elmComment":     comment("--"),
-	"tsCommentt":     comment("//"),
+	"tsComment":      comment("//"),
 }
 
 var conversions = map[Language][]string{
