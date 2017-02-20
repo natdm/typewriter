@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"os"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/natdm/typewriter/template"
 )
@@ -51,6 +53,23 @@ func Directory(d string, r bool, out *[]string, verbose bool) error {
 	return nil
 }
 
+// findImports should keep either the alias name of the import or the package name of an imported package
+func findImports(f *ast.File) map[string]string {
+	r := strings.NewReplacer("\"", "")
+	imports := make(map[string]string)
+	for _, v := range f.Imports {
+		srcpath := os.Getenv("GOPATH") + "/src/"
+		if v.Name != nil {
+			imports[v.Name.String()] = r.Replace(srcpath + v.Path.Value)
+		} else {
+			_n := strings.Split(v.Path.Value, "/")
+			n := r.Replace(_n[len(_n)-1])
+			imports[n] = r.Replace(srcpath + v.Path.Value)
+		}
+	}
+	return imports
+}
+
 // Files parses files and returns the type information
 func Files(files []string, verbose bool) (map[string]*template.PackageType, error) {
 	typs := make(map[string]*template.PackageType)
@@ -62,16 +81,21 @@ func Files(files []string, verbose bool) (map[string]*template.PackageType, erro
 		if err != nil {
 			return nil, err
 		}
+
+		imports := findImports(f)
+		log.Println(imports)
+
 		comments := make(map[string]string)
 		for _, v := range f.Comments {
 			c := v.Text()
-			comments[firstWord(c)] = strings.Replace(c, "\n", "\n// ", len(strings.Split(c, "\n"))-2)
+			comments[firstWord(c)] = c
 		}
 
 		bs, err := ioutil.ReadFile(name)
 		if err != nil {
 			return nil, err
 		}
+
 	OBJLOOP:
 		for _, v := range f.Scope.Objects {
 			if v.Kind == ast.Typ {
@@ -164,11 +188,14 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		for _, v := range x.Fields.List {
 			typ, err := parseType(v.Type)
 			if err != nil {
+				log.Println(err)
 				continue FIELDLOOP
 			}
 			if v.Names == nil {
 				// No names on a type means it is embedded
+
 				str.Embedded = append(str.Embedded, string(bs[v.Type.Pos()-2:v.Type.End()-1]))
+				log.Printf("found embedded type: %s\n", string(bs[v.Type.Pos()-2:v.Type.End()-1]))
 				continue FIELDLOOP
 			}
 			if v.Names[0] == nil {
@@ -195,6 +222,10 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return s, nil
 
 	}
+}
+
+func findEmenddedType(packages []string, name string) {
+
 }
 
 // parseType parses a non-package level type.

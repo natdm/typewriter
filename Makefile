@@ -11,7 +11,7 @@ test:
 
 flow:
 	$(GOBUILD) -v ./
-	go build && ./typewriter -dir ./examples -lang flow -out ./models.js
+	go build && ./typewriter -dir ./examples -lang flow -out ./models.js -v
 
 elm:
 	$(GOBUILD) -v ./

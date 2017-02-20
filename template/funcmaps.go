@@ -1,7 +1,7 @@
 package template
 
 import (
-	"fmt"
+	"log"
 	"strings"
 	"text/template"
 )
@@ -24,12 +24,15 @@ const (
 )
 
 var funcMap = template.FuncMap{
-	"updateFlowType": updateTypes(conversions[Flow]),
-	"updateElmType":  updateTypes(conversions[Elm]),
-	"updateTSType":   updateTypes(conversions[Typescript]),
-	"flowComment":    langComment("//"),
-	"elmComment":     langComment("--"),
-	"tsComment":      langComment("//"),
+	"updateFlowType":  updateTypes(conversions[Flow]),
+	"updateElmType":   updateTypes(conversions[Elm]),
+	"updateTSType":    updateTypes(conversions[Typescript]),
+	"flowComment":     langComment("//"),
+	"elmComment":      langComment("--"),
+	"tsComment":       langComment("//"),
+	"flowTypeComment": typeComment("//"),
+	"elmTypeComment":  typeComment("--"),
+	"tsTypeComment":   typeComment("//"),
 }
 
 var conversions = map[Language][]string{
@@ -105,10 +108,27 @@ func updateTypes(t []string) func(string) string {
 	}
 }
 
+func typeComment(prefix string) func(string) string {
+	return func(c string) string {
+		log.Println(c)
+		if c != "" {
+			out := ""
+			sp := strings.Split(c, "\n")
+			for i, v := range sp {
+				if i != len(sp)-1 {
+					out += prefix + v + "\n"
+				}
+			}
+			return out
+		}
+		return ""
+	}
+}
+
 func langComment(prefix string) func(string) string {
 	return func(c string) string {
 		if c != "" {
-			return fmt.Sprintf(`%s %s`, prefix, c)
+			return prefix + c
 		}
 		return ""
 	}
