@@ -1,5 +1,9 @@
 package stubs
 
+import (
+	"github.com/ponzu-cms/ponzu/system/item"
+)
+
 // Data should all parse right.
 // It's hard to get them to do that.
 // @strict
@@ -28,4 +32,9 @@ type Nested struct {
 // Embedded will take all types from the embedded types and insert them in to the new type.
 type Embedded struct {
 	Person
+}
+
+type ExternalEmbedded struct {
+	item.Item
+	Name string `json:"name"`
 }

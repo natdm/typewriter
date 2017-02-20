@@ -123,7 +123,32 @@ func Files(files []string, verbose bool) (map[string]*template.PackageType, erro
 			}
 		}
 	}
+
+	parseEmbedded(typs)
 	return typs, nil
+}
+
+// parseEmbedded nests embedded type fields in the structs containing embedded types
+func parseEmbedded(types map[string]*template.PackageType) {
+	for _, v := range types {
+		if s, ok := v.Type.(*template.Struct); ok {
+
+			// If any of the structs have embedded types, transfer them to the struct
+			if len(s.Embedded) > 0 {
+			EMBEDLOOP:
+				for _, v := range s.Embedded {
+					_v := strings.TrimSpace(v)
+					if _, ok := types[_v]; ok {
+						if s2, ok := types[_v].Type.(*template.Struct); ok {
+							s.Fields = append(s.Fields, s2.Fields...)
+							continue EMBEDLOOP
+						}
+						continue EMBEDLOOP
+					}
+				}
+			}
+		}
+	}
 }
 
 // Type creates a package level type.
@@ -192,7 +217,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 				// No names on a type means it is embedded
 
 				str.Embedded = append(str.Embedded, string(bs[v.Type.Pos()-2:v.Type.End()-1]))
-				log.Printf("found embedded type: %s\n", string(bs[v.Type.Pos()-2:v.Type.End()-1]))
 				continue FIELDLOOP
 			}
 			if v.Names[0] == nil {
