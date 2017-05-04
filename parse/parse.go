@@ -73,6 +73,7 @@ func findImports(f *ast.File) map[string]string {
 // Files parses files and returns the type information
 func Files(files []string, verbose bool) (map[string]*template.PackageType, error) {
 	typs := make(map[string]*template.PackageType)
+	externals := make(map[string]string)
 	for _, name := range files {
 		fset := token.NewFileSet() // positions are relative to fset
 
@@ -80,6 +81,10 @@ func Files(files []string, verbose bool) (map[string]*template.PackageType, erro
 		f, err := parser.ParseFile(fset, name, nil, parser.ParseComments)
 		if err != nil {
 			return nil, err
+		}
+
+		for k, v := range findImports(f) {
+			externals[k] = v
 		}
 
 		comments := make(map[string]string)
@@ -124,29 +129,65 @@ func Files(files []string, verbose bool) (map[string]*template.PackageType, erro
 		}
 	}
 
-	parseEmbedded(typs)
+	parseEmbeddedTypes(typs, externals)
 	return typs, nil
 }
 
 // parseEmbedded nests embedded type fields in the structs containing embedded types
-func parseEmbedded(types map[string]*template.PackageType) {
+func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]string) {
 	for _, v := range types {
-		if s, ok := v.Type.(*template.Struct); ok {
-
-			// If any of the structs have embedded types, transfer them to the struct
-			if len(s.Embedded) > 0 {
-			EMBEDLOOP:
-				for _, v := range s.Embedded {
-					_v := strings.TrimSpace(v)
-					if _, ok := types[_v]; ok {
-						if s2, ok := types[_v].Type.(*template.Struct); ok {
-							s.Fields = append(s.Fields, s2.Fields...)
-							continue EMBEDLOOP
-						}
+		switch v.Type.(type) {
+		case *template.Struct:
+			s := v.Type.(*template.Struct)
+		EMBEDLOOP:
+			for _, v := range s.Embedded {
+				_v := strings.TrimSpace(v)
+				if _, ok := types[_v]; ok {
+					if s2, ok := types[_v].Type.(*template.Struct); ok {
+						s.Fields = append(s.Fields, s2.Fields...)
 						continue EMBEDLOOP
 					}
+					continue EMBEDLOOP
+				} else if strings.Contains(v, ".") {
+					// Type is in another package
+					str := strings.Split(v, ".")
+					pkg := strings.TrimSpace(str[0])
+					name := strings.TrimSpace(str[1])
+					log.Printf("type %s is in package %s", name, pkgs[pkg])
+
+					files := []string{}
+					err := Directory(pkgs[pkg], false, &files, false)
+					typs, err := Files(files, false)
+					if err != nil {
+						log.WithError(err).Error("error parsing files")
+						continue
+					}
+
+					if _, ok := types[name]; ok {
+						log.WithField("name", name).Warning("type already existed")
+						// type already exists
+						continue
+					}
+
+					if typ, ok := typs[name]; ok {
+						switch typ.Type.(type) {
+						case *template.Struct:
+							st := typ.Type.(*template.Struct)
+							s.Fields = append(s.Fields, st.Fields...)
+						default:
+							log.Println("embedded type not a struct")
+						}
+					} else {
+						log.Println("could not find embedded type in external package")
+					}
+
+				} else {
+					log.Println("could not find type")
+					// do nothing, we can't find the type
 				}
 			}
+		default:
+
 		}
 	}
 }
@@ -239,6 +280,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 
 	default:
 		t := inspectNode(ts)
+		log.Println(t.Type)
 		s.Type = &t
 		return s, nil
 
@@ -330,6 +372,10 @@ func inspectNode(node ast.Node) template.Basic {
 			t.Type = y.Value
 		case *ast.Ident:
 			t.Type = y.Name
+			if y.Obj != nil {
+				log.Println(y.Name)
+				log.Println(y.Obj)
+			}
 		case *ast.StarExpr:
 			t.Pointer = true
 		}

@@ -14,9 +14,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-
 	"io"
+	"os"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/natdm/typewriter/parse"

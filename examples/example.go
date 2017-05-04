@@ -1,6 +1,7 @@
 package stubs
 
 import (
+	pkg "github.com/natdm/typewriter/examples/package"
 	"github.com/ponzu-cms/ponzu/system/item"
 )
 
@@ -13,6 +14,7 @@ type Data struct {
 	MapStringMap  map[string]map[string]int `json:"map_string_to_maps" tw:"override_map_name2,true"` // I am a map of strings to maps
 	MapIgnore     map[int]int               `json:"-"`
 	Peeps         People                    `json:"peeps"`
+	ExternalMap   pkg.DataType              `json:"external_embedded"`
 }
 
 // Person ...
@@ -38,3 +40,5 @@ type ExternalEmbedded struct {
 	item.Item
 	Name string `json:"name"`
 }
+
+type Items []item.Item
