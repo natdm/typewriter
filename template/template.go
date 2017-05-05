@@ -11,6 +11,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+// this file contains all the logic for creting types based on each language utilizing `fragments.go` within the template.
+
 // Templater interface is able to write a template to a writer, based on a Language
 type Templater interface {
 	Template(w io.Writer, lang Language) error

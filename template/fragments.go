@@ -5,6 +5,8 @@ import (
 	"text/template"
 )
 
+// This file contains all the dynamic template fragments for each language.
+
 func init() {
 	// Make sure all languages have all templates.
 	for _, l := range []Language{Elm, Flow, Typescript} {

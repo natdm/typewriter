@@ -8,8 +8,11 @@
 // @strict
 export type Data = {| 
 	map_string_to_int: override_map_name, // I am a map of strings and ints
+
 	map_string_to_ints: { [key: string]: Array<number> }, // I am a map of strings to a slice of ints
+
 	map_string_to_maps: ?override_map_name2, // I am a map of strings to maps
+
 	peeps: People, 
 	external_embedded: DataType
 |}
@@ -20,22 +23,13 @@ export type Embedded = {
 	age: number
 }
 
-// EmbeddedGormModelTest represents a model that has an embedded type in it.
-export type EmbeddedGormModelTest = { 
-	name: string, 
-	description: string, 
-	edit_event: boolean, 
-	del_bid: boolean, 
-	add_bid: boolean, 
-	billing: boolean, 
-	ID: number, 
-	CreatedAt: Time, 
-	UpdatedAt: Time, 
-	DeletedAt: ?Time
-}
-
 export type ExternalEmbedded = { 
-	name: string
+	name: string, 
+	uuid: UUID, 
+	id: number, 
+	slug: string, 
+	timestamp: number, 
+	updated: number
 }
 
 export type Items = Array<Item>

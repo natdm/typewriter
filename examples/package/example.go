@@ -5,3 +5,5 @@ type MyNumber int
 type Thing struct {
 	Name int `json:"name"`
 }
+
+type DataType map[string]string
