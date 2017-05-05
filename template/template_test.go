@@ -139,3 +139,18 @@ func (s *TemplateTestSuite) TestFlowInt() {
 export type AliasToInt = number`
 	s.Equal(expected, buf.String())
 }
+
+func (s *TemplateTestSuite) TestTime() {
+	p := &PackageType{
+		Name:    "TimeToDate",
+		Comment: "... Comment\n",
+		Type:    &TimeType{"TestTime", "", ""},
+	}
+
+	buf := new(bytes.Buffer)
+	s.Require().NoError(p.Template(buf, Flow))
+	expected := `
+// ... Comment
+export type TimeToDate = Date`
+	s.Equal(expected, buf.String())
+}

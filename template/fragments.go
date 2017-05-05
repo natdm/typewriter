@@ -46,6 +46,7 @@ const (
 	mapValue                = "mapValue"
 	structClose             = "structClose"
 	structOpen              = "structOpen"
+	timeType                = "timeType"
 )
 
 // newTemplate returns the template string for a language and a templateKey
@@ -74,6 +75,7 @@ var elmTemplates = map[templateKey]string{
 	structClose: `}`,
 	structOpen: `{
 `,
+	timeType: "Date",
 }
 
 var flowTemplates = map[templateKey]string{
@@ -96,6 +98,7 @@ var flowTemplates = map[templateKey]string{
 	mapValue:    `]: `,
 	structClose: `{{if .Strict}}|}{{else}}}{{end}}`,
 	structOpen:  `{{if .Strict}}{| {{else}}{ {{end}}`,
+	timeType:    "Date",
 }
 
 var tsTemplates = map[templateKey]string{
@@ -117,4 +120,5 @@ var tsTemplates = map[templateKey]string{
 	mapValue:    `]: `,
 	structClose: `}`,
 	structOpen:  `{`,
+	timeType:    "Date",
 }

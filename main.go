@@ -77,41 +77,47 @@ func main() {
 			log.Fatalln(err)
 		}
 	}
-
-	if err := template.Draw(types, out, lang, *vFlag); err != nil {
+	ct, err := template.Draw(types, out, lang, *vFlag)
+	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Info("Done")
+	log.WithField("output_type_ct", ct).Info("Done")
 }
 
 func usage() {
 	fmt.Print(`
 	Typewriter
 	Convert Go types to other languages
-	
+	Visit http://www.github.com/natdm/typewriter for more detailed example useage.
+
 	Flags:
-		-dir	Parse a complete directory 
+		-dir <dir>
+			Parse a complete directory
 			example: 	-dir= ../src/appname/models/
 			default: 	./
 
-		-file	Parse a single go file 
+		-file <gofile>
+			Parse a single go file
 			example: 	-file= ../src/appname/models/app.go
 			overrides 	-dir and -recursive
 
-		-out	Saves content to folder
+		-out <path>
+			Saves content to folder
 			example: 	-out= ../src/appname/models/
 						-out= ../src/appname/models/customname.js
-			default: 	./models. 
+			default: 	./models.
 
-		-r		Transcends directories
-			example:	-recursive= false
-			default:	true
-
-		-v		Verbose logging, detailing every skipped type, file, or field.
-			default: 	false
-
-		-lang 	Language to parse to. One of ["flow"]
+		-lang <lang>
+			Language to parse to. One of ["flow", "elm", "ts"]
 			example:	-lang flow
 			default:	will not parse
+
+		-r
+			Transcends directories
+			default:	true
+
+		-v
+			Verbose logging, detailing every skipped type, file, or field.
+			default: 	false
 `)
 }

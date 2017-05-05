@@ -38,6 +38,25 @@ func Raw(w io.Writer, raw string) error {
 	return tmpl.Execute(w, nil)
 }
 
+// TimeType is specifically for Go's time.Time
+type TimeType struct {
+	Name    string
+	Comment string
+	Tag     string
+}
+
+func (t *TimeType) Template(w io.Writer, lang Language) error {
+	tmpl, err := newTemplate(lang, timeType)
+	if err != nil {
+		return err
+	}
+	if err = tmpl.Execute(w, t); err != nil {
+		return err
+	}
+	// parse time type as the language type.
+	return nil
+}
+
 // PackageType is a package-level type. Any package type will
 // be templated with a full type creation statement and possibly a comment
 type PackageType struct {
@@ -90,7 +109,7 @@ func (t *Map) Template(w io.Writer, lang Language) error {
 	if err = tmpl.Execute(w, t); err != nil {
 		return err
 	}
-	if err := t.Key.Template(w, lang); err != nil {
+	if err = t.Key.Template(w, lang); err != nil {
 		return err
 	}
 	tmpl, err = newTemplate(lang, mapValue)
@@ -158,26 +177,26 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 			return err
 		}
 		if i < len(t.Fields)-1 {
-			tmpl, err := newTemplate(lang, fieldClose)
+			tmpl, err = newTemplate(lang, fieldClose)
 			if err != nil {
 				return err
 			}
-			if err := tmpl.Execute(w, nil); err != nil {
+			if err = tmpl.Execute(w, nil); err != nil {
 				return err
 			}
 			tmpl, err = newTemplate(lang, comment)
 			if err != nil {
 				return err
 			}
-			if err := tmpl.Execute(w, v); err != nil {
+			if err = tmpl.Execute(w, v); err != nil {
 				return err
 			}
 		} else {
-			tmpl, err := newTemplate(lang, comment)
+			tmpl, err = newTemplate(lang, comment)
 			if err != nil {
 				return err
 			}
-			if err := tmpl.Execute(w, v); err != nil {
+			if err = tmpl.Execute(w, v); err != nil {
 				return err
 			}
 			Raw(w, "\n")

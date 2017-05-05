@@ -20,6 +20,7 @@ const (
 const (
 	EmptyInterface = "emptyIface"
 	NestedStruct   = "struct"
+	TimeStruct     = "Date"
 )
 
 var funcMap = template.FuncMap{
@@ -38,6 +39,7 @@ var conversions = map[Language][]string{
 	Flow: []string{
 		EmptyInterface, "any",
 		NestedStruct, "Object",
+		TimeStruct, "Date",
 		"int64", "number",
 		"int32", "number",
 		"int16", "number",
@@ -58,6 +60,7 @@ var conversions = map[Language][]string{
 	Typescript: []string{
 		EmptyInterface, "any",
 		NestedStruct, "Object",
+		TimeStruct, "Date",
 		"int64", "number",
 		"int32", "number",
 		"int16", "number",
@@ -79,6 +82,7 @@ var conversions = map[Language][]string{
 		"string", "String",
 		EmptyInterface, "Maybe",
 		NestedStruct, "Maybe",
+		TimeStruct, "Date",
 		"int64", "Int",
 		"int32", "Int",
 		"int16", "Int",

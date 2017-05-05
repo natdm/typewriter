@@ -145,15 +145,14 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 				if _, ok := types[_v]; ok {
 					if s2, ok := types[_v].Type.(*template.Struct); ok {
 						s.Fields = append(s.Fields, s2.Fields...)
-						continue EMBEDLOOP
 					}
 					continue EMBEDLOOP
-				} else if strings.Contains(v, ".") {
+				}
+				if strings.Contains(v, ".") {
 					// Type is in another package
 					str := strings.Split(v, ".")
 					pkg := strings.TrimSpace(str[0])
 					name := strings.TrimSpace(str[1])
-					log.Printf("type %s is in package %s", name, pkgs[pkg])
 
 					files := []string{}
 					err := Directory(pkgs[pkg], false, &files, false)
@@ -176,11 +175,10 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 						default:
 						}
 					} else {
-						log.Warn("could not find embedded type in external package")
+						log.WithField("type", _v).Warn("could not find embedded type in external package")
 					}
 
 				} else {
-					log.Println("could not find type")
 					// do nothing, we can't find the type
 				}
 			}
@@ -249,7 +247,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		for _, v := range x.Fields.List {
 			typ, err := parseType(v.Type)
 			if err != nil {
-				log.Println(err)
+				log.WithError(err).Error("error parsing types")
 				continue FIELDLOOP
 			}
 			if v.Names == nil {
@@ -273,6 +271,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 			}
 
 			// If no tag, still export -- it will still get parsed as json.
+			// so use the name of the field.
 			if v.Tag == nil {
 				fld.Tag = v.Names[0].Name
 			} else {
@@ -287,7 +286,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 
 	default:
 		t := inspectNode(ts)
-		log.Println(t.Type)
 		s.Type = &t
 		return s, nil
 
@@ -302,6 +300,7 @@ func findEmenddedType(packages []string, name string) {
 func parseType(exp ast.Expr) (template.Templater, error) {
 	switch exp.(type) {
 	case *ast.ChanType, *ast.FuncLit, *ast.FuncType:
+		// Not supporting goofy things.
 		return nil, errSkipType
 
 	case *ast.InterfaceType:
@@ -349,6 +348,8 @@ func parseType(exp ast.Expr) (template.Templater, error) {
 		}, nil
 
 	case *ast.StructType:
+		// TODO: Check for structs that need to be parsed.
+		// Example: time.Time should be "Date" in Flow.
 		return &template.Basic{
 			Type:    template.NestedStruct,
 			Pointer: false,
@@ -380,8 +381,7 @@ func inspectNode(node ast.Node) template.Basic {
 		case *ast.Ident:
 			t.Type = y.Name
 			if y.Obj != nil {
-				log.Println(y.Name)
-				log.Println(y.Obj)
+
 			}
 		case *ast.StarExpr:
 			t.Pointer = true
