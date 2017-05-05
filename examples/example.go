@@ -1,6 +1,7 @@
 package stubs
 
 import (
+	"github.com/jinzhu/gorm"
 	pkg "github.com/natdm/typewriter/examples/package"
 	"github.com/ponzu-cms/ponzu/system/item"
 )
@@ -34,6 +35,17 @@ type Nested struct {
 // Embedded will take all types from the embedded types and insert them in to the new type.
 type Embedded struct {
 	Person
+}
+
+// EmbeddedGormModelTest represents a model that has an embedded type in it.
+type EmbeddedGormModelTest struct {
+	gorm.Model
+	Name        string `gorm:"column:name;index" json:"name"`
+	Description string `gorm:"column:description" json:"description"`
+	EditEvent   bool   `gorm:"column:edit_event" json:"edit_event"`
+	DelBid      bool   `gorm:"column:del_bid" json:"del_bid"`
+	AddBid      bool   `gorm:"column:add_bid" json:"add_bid"`
+	Billing     bool   `gorm:"column:billing" json:"billing"`
 }
 
 type ExternalEmbedded struct {

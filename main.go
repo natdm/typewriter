@@ -45,6 +45,7 @@ func main() {
 	}
 
 	var out io.Writer
+
 	if *outFlag != "" {
 		f, err := os.Create(*outFlag)
 		if err != nil {

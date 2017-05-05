@@ -164,7 +164,6 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 					}
 
 					if _, ok := types[name]; ok {
-						log.WithField("name", name).Warning("type already existed")
 						// type already exists
 						continue
 					}
@@ -175,10 +174,9 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 							st := typ.Type.(*template.Struct)
 							s.Fields = append(s.Fields, st.Fields...)
 						default:
-							log.Println("embedded type not a struct")
 						}
 					} else {
-						log.Println("could not find embedded type in external package")
+						log.Warn("could not find embedded type in external package")
 					}
 
 				} else {
@@ -256,7 +254,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 			}
 			if v.Names == nil {
 				// No names on a type means it is embedded
-
 				str.Embedded = append(str.Embedded, string(bs[v.Type.Pos()-2:v.Type.End()-1]))
 				continue FIELDLOOP
 			}
@@ -265,13 +262,23 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 			}
 			fld := template.Field{}
 			fld.Type = typ
+
 			if v.Comment != nil {
-				fld.Comment = v.Comment.Text()
+				fld.Comment = strings.TrimSuffix(v.Comment.Text(), "\n")
 			}
-			if v.Tag == nil || strings.Contains(v.Tag.Value, "json:\"-\"") {
+
+			if v.Tag != nil && strings.Contains(v.Tag.Value, "json:\"-\"") {
+				// skip ignored json fields
 				continue FIELDLOOP
 			}
-			fld.Tag = v.Tag.Value
+
+			// If no tag, still export -- it will still get parsed as json.
+			if v.Tag == nil {
+				fld.Tag = v.Names[0].Name
+			} else {
+				fld.Tag = v.Tag.Value
+			}
+
 			fld.Name = v.Names[0].Name
 			str.Fields = append(str.Fields, fld)
 		}
