@@ -79,30 +79,36 @@ $ $GOPATH/bin/typewriter -dir ./your/models/directory -lang flow -v -out ./save/
 ```
 
 ```bash
-	Flags:
-		-dir	Parse a complete directory
-			example: 	-dir= ../src/appname/models/
-			default: 	./
+$ typewriter -h
+Flags:
+	-dir <dir>
+		Parse a complete directory
+		example: 	-dir= ../src/appname/models/
+		default: 	./
 
-		-file	Parse a single go file
-			example: 	-file= ../src/appname/models/app.go
-			overrides 	-dir and -recursive
+	-file <gofile>
+		Parse a single go file
+		example: 	-file= ../src/appname/models/app.go
+		overrides 	-dir and -recursive
 
-		-out	Saves content to folder
-			example: 	-out= ../src/appname/models/
-						-out= ../src/appname/models/customname.js
-			default: 	./models.
+	-out <path>
+		Saves content to folder
+		example: 	-out= ../src/appname/models/
+					-out= ../src/appname/models/customname.js
+		default: 	./models.
 
-		-r		Transcends directories
-			example:	-recursive= false
-			default:	true
+	-lang <lang>
+		Language to parse to. One of ["elm", "flow", "ts"]
+		example:	-lang flow
+		default:	will not parse
 
-		-v		Verbose logging, detailing every skipped type, file, or field.
-			default: 	false
+	-r
+		Transcends directories
+		default:	true
 
-		-lang 	Language to parse to. One of ["flow"]
-			example:	-lang flow
-			default:	will not parse
+	-v
+		Verbose logging, detailing every skipped type, file, or field.
+		default: 	false
 ```
 
 ___
