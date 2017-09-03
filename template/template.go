@@ -222,6 +222,17 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	if jsonName != "" {
 		t.Name = jsonName
 	}
+
+	// some naming conventions allowed (but frowned upon) in Go can parse in to illegal names in TS or Flow. Specifically, '-'
+	// in this case, surround with quotes.
+	switch lang {
+	case Typescript, Flow:
+		if strings.Contains(t.Name, "-") {
+			t.Name = fmt.Sprintf(`"%s"`, t.Name)
+		}
+	default:
+	}
+
 	tmpl, err := newTemplate(lang, fieldName)
 	if err != nil {
 		return err

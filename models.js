@@ -3,24 +3,63 @@
 // http://www.github.com/natdm/typewriter
 
 
-// Embedded is testing an embedded struct
+// Data should all parse right.
+// It's hard to get them to do that.
+// @strict
+export type Data = {| 
+	map_string_to_int: override_map_name, // I am a map of strings and ints
+	map_string_to_ints: { [key: string]: Array<number> }, // I am a map of strings to a slice of ints
+	map_string_to_maps: ?override_map_name2, // I am a map of strings to maps
+	peeps: People, 
+	external_embedded: DataType, 
+	"kebab-case": string
+|}
+
+// Embedded will take all types from the embedded types and insert them in to the new type.
 export type Embedded = { 
-	created_at: Date// manually overriding field with a name
+	name: string, 
+	age: number
 }
 
-// Event ..
-export type Event = { 
-	name: string
+// EmbeddedGormModelTest represents a model that has an embedded type in it.
+export type EmbeddedGormModelTest = { 
+	name: string, 
+	description: string, 
+	edit_event: boolean, 
+	del_bid: boolean, 
+	add_bid: boolean, 
+	billing: boolean, 
+	ID: number, 
+	CreatedAt: Time, 
+	UpdatedAt: Time, 
+	DeletedAt: ?Time
 }
 
-// Example represents most of what TW can do.
-export type Example = { 
-	basic: string, // basic types
-	maps: { [key: string]: Event }, // map types
-	slices_too: Array<Event>, // slices
-	event_pointer: ?Event, // pointers
-	created_at: Date// manually overriding field with a name
+export type ExternalEmbedded = { 
+	name: string, 
+	uuid: UUID, 
+	id: number, 
+	slug: string, 
+	timestamp: number, 
+	updated: number
 }
 
-// Time ..
-export type Time = Date
+export type Items = Array<Item>
+
+export type MyInvalidJsType = { 
+	"some-property": string// wow, why did we do this? totally valid JS though
+}
+
+// Nested defaults to the closest "Object" type in any language. Utilize the `tw` tag if needed.
+export type Nested = { 
+	person: Object
+}
+
+// People is a map of strings to person
+export type People = { [key: string]: Person }
+
+// Person ...
+export type Person = { 
+	name: string, 
+	age: number
+}
