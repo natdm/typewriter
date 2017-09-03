@@ -16,6 +16,11 @@ type Data struct {
 	MapIgnore     map[int]int               `json:"-"`
 	Peeps         People                    `json:"peeps"`
 	ExternalMap   pkg.DataType              `json:"external_embedded"`
+	KebabCase     string                    `json:"kebab-case"`
+}
+
+type MyInvalidJsType struct {
+	someProperty string `json:"some-property"` // wow, why did we do this? totally valid JS though
 }
 
 // Person ...
