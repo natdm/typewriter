@@ -50,11 +50,8 @@ func (t *TimeType) Template(w io.Writer, lang Language) error {
 	if err != nil {
 		return err
 	}
-	if err = tmpl.Execute(w, t); err != nil {
-		return err
-	}
-	// parse time type as the language type.
-	return nil
+
+	return tmpl.Execute(w, t)
 }
 
 // PackageType is a package-level type. Any package type will
@@ -266,14 +263,14 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 
 func getTag(tag string, tags string) string {
 	loc := strings.Index(tags, fmt.Sprintf("%s:\"", tag))
-	if loc > -1 {
-		bs := []byte(tags)
-		bs = bs[loc+len(tag)+2:]
-		loc = strings.Index(string(bs), "\"")
-		if loc == -1 {
-			return ""
-		}
-		return string(bs[:loc])
+	if loc <= -1 {
+		return ""
 	}
-	return ""
+	bs := []byte(tags)
+	bs = bs[loc+len(tag)+2:]
+	loc = strings.Index(string(bs), "\"")
+	if loc == -1 {
+		return ""
+	}
+	return string(bs[:loc])
 }

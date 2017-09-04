@@ -292,10 +292,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 	}
 }
 
-func findEmenddedType(packages []string, name string) {
-
-}
-
 // parseType parses a non-package level type.
 func parseType(exp ast.Expr) (template.Templater, error) {
 	switch exp.(type) {

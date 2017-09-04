@@ -105,33 +105,30 @@ var conversions = map[Language][]string{
 // updateTypes takes a conversion slice and returns
 // a function used as a string replacer
 func updateTypes(t []string) func(string) string {
-	return func(s string) string {
-		replacer := strings.NewReplacer(t...)
-		return replacer.Replace(s)
-	}
+	return func(s string) string { return strings.NewReplacer(t...).Replace(s) }
 }
 
 func typeComment(prefix string) func(string) string {
 	return func(c string) string {
-		if c != "" {
-			out := ""
-			sp := strings.Split(c, "\n")
-			for i, v := range sp {
-				if i != len(sp)-1 {
-					out += prefix + " " + v + "\n"
-				}
-			}
-			return out
+		if c == "" {
+			return c
 		}
-		return ""
+		out := ""
+		sp := strings.Split(c, "\n")
+		for i, v := range sp {
+			if i != len(sp)-1 {
+				out += prefix + " " + v + "\n"
+			}
+		}
+		return out
 	}
 }
 
 func langComment(prefix string) func(string) string {
 	return func(c string) string {
-		if c != "" {
-			return prefix + " " + c
+		if c == "" {
+			return c
 		}
-		return ""
+		return prefix + " " + c
 	}
 }
