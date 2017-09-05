@@ -21,6 +21,9 @@ type Data struct {
 
 type MyInvalidJsType struct {
 	someProperty string `json:"some-property"` // wow, why did we do this? totally valid JS though
+	anotherProperty string `json:"property/another"` // this is simply absurd
+	additionalProperty string `json:"properties#additional"` // darn, it's all over our code!
+	furtherProperty string `json:"属性"` // 我们没有时间啊!
 }
 
 // Person ...

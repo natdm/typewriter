@@ -220,11 +220,11 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 		t.Name = jsonName
 	}
 
-	// some naming conventions allowed (but frowned upon) in Go can parse in to illegal names in TS or Flow. Specifically, '-'
-	// in this case, surround with quotes.
+	// Golang allows any valid JSON property name to be provided in the JSON tag.
+	// Some aren't valid JS identifiers, so we want to quote them.
 	switch lang {
 	case Typescript, Flow:
-		if strings.Contains(t.Name, "-") {
+		if propertyShouldBeQuoted(t.Name) {
 			t.Name = fmt.Sprintf(`"%s"`, t.Name)
 		}
 	default:
