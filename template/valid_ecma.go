@@ -71,7 +71,6 @@ var ecmaReservedWords = map[string]struct{}{
 // are valid. See: https://stackoverflow.com/questions/2008279/validate-a-javascript-function-name
 var validIdentifier = regexp.MustCompile(`^[$\w]+$`)
 
-
 /**
  * propertyShouldBeQuoted takes a name and returns true if it ought to be quoted as part of a
  * javascript or Typescript/Flow typedef property name. Those conditions are:
