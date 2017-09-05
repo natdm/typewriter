@@ -28,26 +28,20 @@ export type EmbeddedGormModelTest = {
 	edit_event: boolean, 
 	del_bid: boolean, 
 	add_bid: boolean, 
-	billing: boolean, 
-	ID: number, 
-	CreatedAt: Time, 
-	UpdatedAt: Time, 
-	DeletedAt: ?Time
+	billing: boolean
 }
 
 export type ExternalEmbedded = { 
-	name: string, 
-	uuid: UUID, 
-	id: number, 
-	slug: string, 
-	timestamp: number, 
-	updated: number
+	name: string
 }
 
 export type Items = Array<Item>
 
 export type MyInvalidJsType = { 
-	"some-property": string// wow, why did we do this? totally valid JS though
+	"some-property": string, // wow, why did we do this? totally valid JS though
+	"property/another": string, // this is simply absurd
+	"properties#additional": string, // darn, it's all over our code!
+	"属性": string// 我们没有时间啊!
 }
 
 // Nested defaults to the closest "Object" type in any language. Utilize the `tw` tag if needed.
