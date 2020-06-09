@@ -281,7 +281,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 }
 
 // parseType parses a non-package level type.
-func parseType(exp ast.Expr) (template.Templater, error) {
+func parseType(exp ast.Expr) (template.TypeSpec, error) {
 	switch exp.(type) {
 	case *ast.ChanType, *ast.FuncLit, *ast.FuncType:
 		// Not supporting goofy things.

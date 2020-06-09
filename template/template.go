@@ -18,6 +18,11 @@ type Templater interface {
 	Template(w io.Writer, lang Language) error
 }
 
+type TypeSpec interface {
+	Templater
+	IsPointer() bool
+}
+
 var errNoType = errors.New("type not stored in package level type declaration")
 
 // Header is the file header
@@ -93,6 +98,10 @@ func (t *Basic) Template(w io.Writer, lang Language) error {
 	return tmpl.Execute(w, t)
 }
 
+func (t *Basic) IsPointer() bool {
+	return t.Pointer
+}
+
 type Map struct {
 	Key   Templater
 	Value Templater
@@ -127,6 +136,10 @@ func (t *Map) Template(w io.Writer, lang Language) error {
 	return tmpl.Execute(w, t)
 }
 
+func (t *Map) IsPointer() bool {
+	return false
+}
+
 // Array has a type
 type Array struct {
 	Type Templater
@@ -148,6 +161,10 @@ func (t *Array) Template(w io.Writer, lang Language) error {
 		return err
 	}
 	return tmpl.Execute(w, t)
+}
+
+func (t *Array) IsPointer() bool {
+	return false // TODO: track pointers to arrays
 }
 
 // Struct only has fields
@@ -209,7 +226,7 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 // Field is a struct field
 type Field struct {
 	Name    string
-	Type    Templater
+	Type    TypeSpec
 	Comment string
 	Tag     string
 }
@@ -231,6 +248,20 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	}
 
 	tmpl, err := newTemplate(lang, fieldName)
+	basicType, isBasic := t.Type.(*Basic)
+	if lang == Typescript && isBasic {
+		// Special case for TS: top-level nullable type is written as
+		// field?: T
+		// but if that's the type parameter, it should become
+		// T | undefined
+		// So, we drop the Pointer flag for top-level types, since the field
+		// already has "?" in it.
+		t.Type = &Basic{
+			Type:    basicType.Type,
+			Pointer: false,
+		}
+	}
+
 	if err != nil {
 		return err
 	}

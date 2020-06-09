@@ -108,13 +108,13 @@ var tsTemplates = map[templateKey]string{
 `,
 	arrayOpen:  `Array<`,
 	arrayClose: `>`,
-	basic:      `{{if .Pointer}}?{{end}}{{updateTSType .Type}}`,
+	basic:      `{{updateTSType .Type}}{{if .Pointer}} | undefined{{end}}`,
 	comment:    `{{tsComment .Comment}}`,
 	declaration: `
 {{tsTypeComment .Comment}}type {{.Name}} = `,
 	fieldClose: `, `,
 	fieldName: `
-	{{.Name}}: `,
+	{{.Name}}{{if .Type.IsPointer}}?{{end}}: `,
 	mapClose:    ` }`,
 	mapKey:      `{ [key: `,
 	mapValue:    `]: `,
