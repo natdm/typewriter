@@ -17,9 +17,9 @@ import (
 	"io"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/natdm/typewriter/parse"
 	"github.com/natdm/typewriter/template"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {

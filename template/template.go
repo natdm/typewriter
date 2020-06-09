@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // this file contains all the logic for creting types based on each language utilizing `fragments.go` within the template.
