@@ -71,7 +71,7 @@ func findImports(f *ast.File) map[string]string {
 }
 
 // Files parses files and returns the type information
-func Files(files []string, verbose bool) (map[string]*template.PackageType, error) {
+func Files(files []string, verbose bool, expandEmbedded bool) (map[string]*template.PackageType, error) {
 	typs := make(map[string]*template.PackageType)
 	externals := make(map[string]string)
 	for _, name := range files {
@@ -129,12 +129,14 @@ func Files(files []string, verbose bool) (map[string]*template.PackageType, erro
 		}
 	}
 
-	parseEmbeddedTypes(typs, externals)
+	if expandEmbedded {
+		expandEmbeddedTypes(typs, externals)
+	}
 	return typs, nil
 }
 
 // parseEmbedded nests embedded type fields in the structs containing embedded types
-func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]string) {
+func expandEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]string) {
 	for _, v := range types {
 		switch v.Type.(type) {
 		case *template.Struct:
@@ -156,7 +158,7 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 
 					files := []string{}
 					err := Directory(pkgs[pkg], false, &files, false)
-					typs, err := Files(files, false)
+					typs, err := Files(files, false, true)
 					if err != nil {
 						log.WithError(err).Error("error parsing files")
 						continue
@@ -173,6 +175,7 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 							st := typ.Type.(*template.Struct)
 							s.Fields = append(s.Fields, st.Fields...)
 						default:
+							panic("Embedded type is not struct")
 						}
 					} else {
 						log.WithField("type", _v).Warn("could not find embedded type in external package")
@@ -182,6 +185,7 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 					// do nothing, we can't find the type
 				}
 			}
+			s.Embedded = nil
 		default:
 
 		}
@@ -240,7 +244,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 			}
 			if v.Names == nil {
 				// No names on a type means it is embedded
-				str.Embedded = append(str.Embedded, string(bs[v.Type.Pos()-2:v.Type.End()-1]))
+				str.Embedded = append(str.Embedded, strings.TrimSpace(string(bs[v.Type.Pos()-2:v.Type.End()-1])))
 				continue FIELDLOOP
 			}
 			if v.Names[0] == nil {

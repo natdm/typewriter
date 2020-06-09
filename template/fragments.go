@@ -96,7 +96,7 @@ var flowTemplates = map[templateKey]string{
 	mapClose:    ` }`,
 	mapKey:      `{ [key: `,
 	mapValue:    `]: `,
-	structClose: `{{if .Strict}}|}{{else}}}{{end}}`,
+	structClose: `{{ range .Embedded}}{{.}} & {{end}}{{if .Strict}}|}{{else}}}{{end}}`,
 	structOpen:  `{{if .Strict}}{| {{else}}{ {{end}}`,
 	timeType:    "Date",
 }
@@ -119,6 +119,6 @@ var tsTemplates = map[templateKey]string{
 	mapKey:      `{ [key: `,
 	mapValue:    `]: `,
 	structClose: `}`,
-	structOpen:  `{`,
+	structOpen:  `{{ range .Embedded}}{{ . }} & {{end}}{`,
 	timeType:    "Date",
 }
