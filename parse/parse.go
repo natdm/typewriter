@@ -196,7 +196,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		s.Comment = ts.Comment.Text()
 	}
 
-	switch ts.Type.(type) {
+	switch x := ts.Type.(type) {
 	case *ast.ChanType, *ast.FuncLit, *ast.FuncType:
 		return nil, errSkipType
 
@@ -204,10 +204,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return nil, errSkipType
 
 	case *ast.ArrayType:
-		x, ok := ts.Type.(*ast.ArrayType)
-		if !ok {
-			return nil, errTypeAssert
-		}
 		t, err := parseType(x.Elt)
 		if err != nil {
 			return nil, err
@@ -218,10 +214,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return s, nil
 
 	case *ast.MapType:
-		x, ok := ts.Type.(*ast.MapType)
-		if !ok {
-			return nil, errTypeAssert
-		}
 		key, err := parseType(x.Key)
 		if err != nil {
 			return nil, err
@@ -237,10 +229,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return s, nil
 
 	case *ast.StructType:
-		x, ok := ts.Type.(*ast.StructType)
-		if !ok {
-			return nil, errTypeAssert
-		}
 		str := &template.Struct{}
 		str.Strict = flags.strict
 	FIELDLOOP:
@@ -285,7 +273,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return s, nil
 
 	default:
-		t := inspectNode(ts)
+		t := inspectNode(x)
 		s.Type = &t
 		return s, nil
 
@@ -375,7 +363,12 @@ func inspectNode(node ast.Node) template.Basic {
 		case *ast.BasicLit:
 			t.Type = y.Value
 		case *ast.Ident:
-			t.Type = y.Name
+			if t.Type == "" {
+				t.Type = y.Name
+			} else {
+				// Selector expr: package.Type
+				t.Type += "." + y.Name
+			}
 			if y.Obj != nil {
 
 			}
