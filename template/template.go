@@ -1,9 +1,11 @@
 package template
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -116,14 +118,30 @@ type Array struct {
 	Type Templater
 }
 
+var simpleType = regexp.MustCompile("^[a-zA-Z0-9_.]+$")
+
 func (t *Array) Template(w io.Writer, lang Language) error {
-	if err := newTemplate(templates[lang].arrayOpen).Execute(w, t); err != nil {
+	buf := bytes.Buffer{}
+	if err := t.Type.Template(&buf, lang); err != nil {
 		return err
 	}
-	if err := t.Type.Template(w, lang); err != nil {
+	elemTypeAsBytes := buf.Bytes()
+
+	open := templates[lang].arrayOpen
+	close := templates[lang].arrayClose
+
+	if simpleType.Find(elemTypeAsBytes) != nil {
+		open = templates[lang].arrayShortOpen
+		close = templates[lang].arrayShortClose
+	}
+
+	if err := newTemplate(open).Execute(w, t); err != nil {
 		return err
 	}
-	return newTemplate(templates[lang].arrayClose).Execute(w, t)
+	if _, err := w.Write(elemTypeAsBytes); err != nil {
+		return err
+	}
+	return newTemplate(close).Execute(w, t)
 }
 
 func (t *Array) IsPointer() bool {

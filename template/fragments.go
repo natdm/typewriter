@@ -14,20 +14,22 @@ var templates = map[Language]langTemplates{
 }
 
 type langTemplates struct {
-	header      string
-	arrayOpen   string
-	arrayClose  string
-	basic       string
-	comment     string
-	declaration string
-	fieldClose  string
-	fieldName   string
-	mapClose    string
-	mapKey      string
-	mapValue    string
-	structClose string
-	structOpen  string
-	timeType    string
+	header          string
+	arrayOpen       string
+	arrayClose      string
+	arrayShortOpen  string
+	arrayShortClose string
+	basic           string
+	comment         string
+	declaration     string
+	fieldClose      string
+	fieldName       string
+	mapClose        string
+	mapKey          string
+	mapValue        string
+	structClose     string
+	structOpen      string
+	timeType        string
 }
 
 // newTemplate returns the template string for a language and a string
@@ -42,10 +44,12 @@ var elmTemplates = langTemplates{
 -- http://www.github.com/natdm/typewriter
 
 `,
-	arrayOpen:  ` List`,
-	arrayClose: ``,
-	basic:      ` {{updateElmType .Type}}`,
-	comment:    ` {{elmComment .Comment}}`,
+	arrayOpen:       ` List`,
+	arrayClose:      ``,
+	arrayShortOpen:  ` List`,
+	arrayShortClose: ``,
+	basic:           ` {{updateElmType .Type}}`,
+	comment:         ` {{elmComment .Comment}}`,
 	declaration: `
 {{elmTypeComment .Comment}}type alias {{.Name}} : `,
 	fieldClose: `,`,
@@ -65,10 +69,12 @@ var flowTemplates = langTemplates{
 // http://www.github.com/natdm/typewriter
 
 `,
-	arrayOpen:  `Array<`,
-	arrayClose: `>`,
-	basic:      `{{if .Pointer}}?{{end}}{{updateFlowType .Type}}`,
-	comment:    `{{flowComment .Comment}}`,
+	arrayOpen:       `Array<`,
+	arrayClose:      `>`,
+	arrayShortOpen:  ``,
+	arrayShortClose: `[]`,
+	basic:           `{{if .Pointer}}?{{end}}{{updateFlowType .Type}}`,
+	comment:         `{{flowComment .Comment}}`,
 	declaration: `
 {{flowTypeComment .Comment}}export type {{.Name}} = `,
 	fieldClose: `, `,
@@ -87,10 +93,12 @@ var tsTemplates = langTemplates{
 // http://www.github.com/natdm/typewriter
 
 `,
-	arrayOpen:  `Array<`,
-	arrayClose: `>`,
-	basic:      `{{updateTSType .Type}}{{if .Pointer}} | undefined{{end}}`,
-	comment:    `{{tsComment .Comment}}`,
+	arrayOpen:       `Array<`,
+	arrayClose:      `>`,
+	arrayShortOpen:  ``,
+	arrayShortClose: `[]`,
+	basic:           `{{updateTSType .Type}}{{if .Pointer}} | undefined{{end}}`,
+	comment:         `{{tsComment .Comment}}`,
 	declaration: `
 {{tsTypeComment .Comment}}type {{.Name}} = `,
 	fieldClose: `, `,
