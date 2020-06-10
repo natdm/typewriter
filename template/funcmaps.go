@@ -1,6 +1,7 @@
 package template
 
 import (
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -35,77 +36,48 @@ var funcMap = template.FuncMap{
 	"tsTypeComment":   typeComment("//"),
 }
 
-var conversions = map[Language][]string{
-	Flow: []string{
-		EmptyInterface, "any",
-		NestedStruct, "Object",
-		TimeStruct, "Date",
-		"int64", "number",
-		"int32", "number",
-		"int16", "number",
-		"int8", "number",
-		"int", "number",
-		"uint64", "number",
-		"uint32", "number",
-		"uint16", "number",
-		"uint8", "number",
-		"uint", "number",
-		"byte", "number",
-		"rune", "number",
-		"float32", "number",
-		"float64", "number",
-		"complex64", "number",
-		"complex128", "number",
-		"bool", "boolean"},
-	Typescript: []string{
-		EmptyInterface, "any",
-		NestedStruct, "Object",
-		TimeStruct, "Date",
-		"int64", "number",
-		"int32", "number",
-		"int16", "number",
-		"int8", "number",
-		"int", "number",
-		"uint64", "number",
-		"uint32", "number",
-		"uint16", "number",
-		"uint8", "number",
-		"uint", "number",
-		"byte", "number",
-		"rune", "number",
-		"float32", "number",
-		"float64", "number",
-		"complex64", "number",
-		"complex128", "number",
-		"bool", "boolean"},
-	Elm: []string{
-		"string", "String",
-		EmptyInterface, "Maybe",
-		NestedStruct, "Maybe",
-		TimeStruct, "Date",
-		"int64", "Int",
-		"int32", "Int",
-		"int16", "Int",
-		"int8", "Int",
-		"int", "Int",
-		"uint64", "Int",
-		"uint32", "Int",
-		"uint16", "Int",
-		"uint8", "Int",
-		"uint", "Int",
-		"byte", "Int",
-		"rune", "Int",
-		"float32", "Float",
-		"float64", "Float",
-		"complex64", "Int",
-		"complex128", "Int",
-		"bool", "Bool"},
+const goInt = "int64|int32|int16|int8|int|uint64|uint32|uint16|uint8|uint|byte|rune"
+const goFloat = "float32|float64|complex64|complex128"
+const goNumbers = goInt + "|" + goFloat
+
+func asWord(baseRegex string) *regexp.Regexp {
+	return regexp.MustCompile("\\b(" + baseRegex + ")\\b")
+}
+
+var conversions = map[Language]map[string]*regexp.Regexp{
+	Flow: map[string]*regexp.Regexp{
+		"any":     asWord(EmptyInterface),
+		"Object":  asWord(NestedStruct),
+		"Date":    asWord(TimeStruct),
+		"number":  asWord(goNumbers),
+		"boolean": asWord("bool"),
+	},
+	Typescript: map[string]*regexp.Regexp{
+		"any":     asWord(EmptyInterface),
+		"object":  asWord(NestedStruct),
+		"Date":    asWord(TimeStruct),
+		"number":  asWord(goNumbers),
+		"boolean": asWord("bool"),
+	},
+	Elm: map[string]*regexp.Regexp{
+		"string": asWord("string"),
+		"Maybe":  asWord(EmptyInterface + "|" + NestedStruct),
+		"Date":   asWord(TimeStruct),
+		"Bool":   asWord("bool"),
+		"Int":    asWord(goInt),
+		"Float":  asWord(goFloat),
+	},
 }
 
 // updateTypes takes a conversion slice and returns
 // a function used as a string replacer
-func updateTypes(t []string) func(string) string {
-	return func(s string) string { return strings.NewReplacer(t...).Replace(s) }
+func updateTypes(replacements map[string]*regexp.Regexp) func(string) string {
+	return func(s string) string {
+		for target, regex := range replacements {
+			s = regex.ReplaceAllString(s, target)
+		}
+		return s
+	}
 }
 
 func typeComment(prefix string) func(string) string {
