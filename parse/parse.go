@@ -11,8 +11,8 @@ import (
 
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/natdm/typewriter/template"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -71,7 +71,7 @@ func findImports(f *ast.File) map[string]string {
 }
 
 // Files parses files and returns the type information
-func Files(files []string, verbose bool) (map[string]*template.PackageType, error) {
+func Files(files []string, verbose bool, expandEmbedded bool) (map[string]*template.PackageType, error) {
 	typs := make(map[string]*template.PackageType)
 	externals := make(map[string]string)
 	for _, name := range files {
@@ -129,12 +129,14 @@ func Files(files []string, verbose bool) (map[string]*template.PackageType, erro
 		}
 	}
 
-	parseEmbeddedTypes(typs, externals)
+	if expandEmbedded {
+		expandEmbeddedTypes(typs, externals)
+	}
 	return typs, nil
 }
 
 // parseEmbedded nests embedded type fields in the structs containing embedded types
-func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]string) {
+func expandEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]string) {
 	for _, v := range types {
 		switch v.Type.(type) {
 		case *template.Struct:
@@ -156,7 +158,7 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 
 					files := []string{}
 					err := Directory(pkgs[pkg], false, &files, false)
-					typs, err := Files(files, false)
+					typs, err := Files(files, false, true)
 					if err != nil {
 						log.WithError(err).Error("error parsing files")
 						continue
@@ -173,6 +175,7 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 							st := typ.Type.(*template.Struct)
 							s.Fields = append(s.Fields, st.Fields...)
 						default:
+							panic("Embedded type is not struct")
 						}
 					} else {
 						log.WithField("type", _v).Warn("could not find embedded type in external package")
@@ -182,6 +185,7 @@ func parseEmbeddedTypes(types map[string]*template.PackageType, pkgs map[string]
 					// do nothing, we can't find the type
 				}
 			}
+			s.Embedded = nil
 		default:
 
 		}
@@ -196,7 +200,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		s.Comment = ts.Comment.Text()
 	}
 
-	switch ts.Type.(type) {
+	switch x := ts.Type.(type) {
 	case *ast.ChanType, *ast.FuncLit, *ast.FuncType:
 		return nil, errSkipType
 
@@ -204,10 +208,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return nil, errSkipType
 
 	case *ast.ArrayType:
-		x, ok := ts.Type.(*ast.ArrayType)
-		if !ok {
-			return nil, errTypeAssert
-		}
 		t, err := parseType(x.Elt)
 		if err != nil {
 			return nil, err
@@ -218,10 +218,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return s, nil
 
 	case *ast.MapType:
-		x, ok := ts.Type.(*ast.MapType)
-		if !ok {
-			return nil, errTypeAssert
-		}
 		key, err := parseType(x.Key)
 		if err != nil {
 			return nil, err
@@ -237,10 +233,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return s, nil
 
 	case *ast.StructType:
-		x, ok := ts.Type.(*ast.StructType)
-		if !ok {
-			return nil, errTypeAssert
-		}
 		str := &template.Struct{}
 		str.Strict = flags.strict
 	FIELDLOOP:
@@ -252,7 +244,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 			}
 			if v.Names == nil {
 				// No names on a type means it is embedded
-				str.Embedded = append(str.Embedded, string(bs[v.Type.Pos()-2:v.Type.End()-1]))
+				str.Embedded = append(str.Embedded, strings.TrimSpace(string(bs[v.Type.Pos()-2:v.Type.End()-1])))
 				continue FIELDLOOP
 			}
 			if v.Names[0] == nil {
@@ -285,7 +277,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 		return s, nil
 
 	default:
-		t := inspectNode(ts)
+		t := inspectNode(x)
 		s.Type = &t
 		return s, nil
 
@@ -293,7 +285,7 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 }
 
 // parseType parses a non-package level type.
-func parseType(exp ast.Expr) (template.Templater, error) {
+func parseType(exp ast.Expr) (template.TypeSpec, error) {
 	switch exp.(type) {
 	case *ast.ChanType, *ast.FuncLit, *ast.FuncType:
 		// Not supporting goofy things.
@@ -375,7 +367,12 @@ func inspectNode(node ast.Node) template.Basic {
 		case *ast.BasicLit:
 			t.Type = y.Value
 		case *ast.Ident:
-			t.Type = y.Name
+			if t.Type == "" {
+				t.Type = y.Name
+			} else {
+				// Selector expr: package.Type
+				t.Type += "." + y.Name
+			}
 			if y.Obj != nil {
 
 			}

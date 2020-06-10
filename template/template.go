@@ -1,14 +1,16 @@
 package template
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // this file contains all the logic for creting types based on each language utilizing `fragments.go` within the template.
@@ -18,15 +20,16 @@ type Templater interface {
 	Template(w io.Writer, lang Language) error
 }
 
+type TypeSpec interface {
+	Templater
+	IsPointer() bool
+}
+
 var errNoType = errors.New("type not stored in package level type declaration")
 
 // Header is the file header
 func Header(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(lang, header)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, nil)
+	return newTemplate(templates[lang].header).Execute(w, nil)
 }
 
 // Raw is a template with raw input in it
@@ -46,12 +49,7 @@ type TimeType struct {
 }
 
 func (t *TimeType) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(lang, timeType)
-	if err != nil {
-		return err
-	}
-
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].timeType).Execute(w, t)
 }
 
 // PackageType is a package-level type. Any package type will
@@ -64,11 +62,7 @@ type PackageType struct {
 }
 
 func (t *PackageType) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(lang, declaration)
-	if err != nil {
-		return err
-	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := newTemplate(templates[lang].declaration).Execute(w, t); err != nil {
 		return err
 	}
 	if t.Type == nil {
@@ -86,11 +80,11 @@ type Basic struct {
 }
 
 func (t *Basic) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(lang, basic)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].basic).Execute(w, t)
+}
+
+func (t *Basic) IsPointer() bool {
+	return t.Pointer
 }
 
 type Map struct {
@@ -99,32 +93,24 @@ type Map struct {
 }
 
 func (t *Map) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(lang, mapKey)
-	if err != nil {
+	if err := newTemplate(templates[lang].mapKey).Execute(w, t); err != nil {
 		return err
 	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := t.Key.Template(w, lang); err != nil {
 		return err
 	}
-	if err = t.Key.Template(w, lang); err != nil {
-		return err
-	}
-	tmpl, err = newTemplate(lang, mapValue)
-	if err != nil {
-		return err
-	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := newTemplate(templates[lang].mapValue).Execute(w, t); err != nil {
 		return err
 	}
 
-	if err = t.Value.Template(w, lang); err != nil {
+	if err := t.Value.Template(w, lang); err != nil {
 		return err
 	}
-	tmpl, err = newTemplate(lang, mapClose)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].mapClose).Execute(w, t)
+}
+
+func (t *Map) IsPointer() bool {
+	return false
 }
 
 // Array has a type
@@ -132,22 +118,34 @@ type Array struct {
 	Type Templater
 }
 
+var simpleType = regexp.MustCompile("^[a-zA-Z0-9_.]+$")
+
 func (t *Array) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(lang, arrayOpen)
-	if err != nil {
+	buf := bytes.Buffer{}
+	if err := t.Type.Template(&buf, lang); err != nil {
 		return err
 	}
-	if err = tmpl.Execute(w, t); err != nil {
+	elemTypeAsBytes := buf.Bytes()
+
+	open := templates[lang].arrayOpen
+	close := templates[lang].arrayClose
+
+	if simpleType.Find(elemTypeAsBytes) != nil {
+		open = templates[lang].arrayShortOpen
+		close = templates[lang].arrayShortClose
+	}
+
+	if err := newTemplate(open).Execute(w, t); err != nil {
 		return err
 	}
-	if err = t.Type.Template(w, lang); err != nil {
+	if _, err := w.Write(elemTypeAsBytes); err != nil {
 		return err
 	}
-	tmpl, err = newTemplate(lang, arrayClose)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, t)
+	return newTemplate(close).Execute(w, t)
+}
+
+func (t *Array) IsPointer() bool {
+	return false // TODO: track pointers to arrays
 }
 
 // Struct only has fields
@@ -162,54 +160,34 @@ type Struct struct {
 }
 
 func (t *Struct) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(lang, structOpen)
-	if err != nil {
-		return err
-	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := newTemplate(templates[lang].structOpen).Execute(w, t); err != nil {
 		return err
 	}
 	for i, v := range t.Fields {
-		if err = v.Template(w, lang); err != nil {
+		if err := v.Template(w, lang); err != nil {
 			return err
 		}
 		if i < len(t.Fields)-1 {
-			tmpl, err = newTemplate(lang, fieldClose)
-			if err != nil {
+			if err := newTemplate(templates[lang].fieldClose).Execute(w, nil); err != nil {
 				return err
 			}
-			if err = tmpl.Execute(w, nil); err != nil {
-				return err
-			}
-			tmpl, err = newTemplate(lang, comment)
-			if err != nil {
-				return err
-			}
-			if err = tmpl.Execute(w, v); err != nil {
+			if err := newTemplate(templates[lang].comment).Execute(w, v); err != nil {
 				return err
 			}
 		} else {
-			tmpl, err = newTemplate(lang, comment)
-			if err != nil {
-				return err
-			}
-			if err = tmpl.Execute(w, v); err != nil {
+			if err := newTemplate(templates[lang].comment).Execute(w, v); err != nil {
 				return err
 			}
 			Raw(w, "\n")
 		}
 	}
-	tmpl, err = newTemplate(lang, structClose)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].structClose).Execute(w, t)
 }
 
 // Field is a struct field
 type Field struct {
 	Name    string
-	Type    Templater
+	Type    TypeSpec
 	Comment string
 	Tag     string
 }
@@ -230,11 +208,21 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	default:
 	}
 
-	tmpl, err := newTemplate(lang, fieldName)
-	if err != nil {
-		return err
+	basicType, isBasic := t.Type.(*Basic)
+	if lang == Typescript && isBasic {
+		// Special case for TS: top-level nullable type is written as
+		// field?: T
+		// but if that's the type parameter, it should become
+		// T | undefined
+		// So, we drop the Pointer flag for top-level types, since the field
+		// already has "?" in it.
+		t.Type = &Basic{
+			Type:    basicType.Type,
+			Pointer: false,
+		}
 	}
-	if err = tmpl.Execute(w, t); err != nil {
+
+	if err := newTemplate(templates[lang].fieldName).Execute(w, t); err != nil {
 		return err
 	}
 

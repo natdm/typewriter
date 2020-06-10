@@ -17,9 +17,9 @@ import (
 	"io"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/natdm/typewriter/parse"
 	"github.com/natdm/typewriter/template"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -29,6 +29,7 @@ func main() {
 	outFlag := flag.String("out", "", "file and path to save output to")
 	vFlag := flag.Bool("v", false, "verbose logging")
 	recursiveFlag := flag.Bool("r", true, "to recursively ascend all folders in dir")
+	expandEmbeddedFlag := flag.Bool("e", false, "expand embedded structs inline")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -38,6 +39,10 @@ func main() {
 		lang = template.Flow
 	case "elm":
 		lang = template.Elm
+		if !*expandEmbeddedFlag {
+			log.Fatalln(
+				"You have to use -e flag with Elm, which does not support intersection types")
+		}
 	case "ts":
 		lang = template.Typescript
 	default:
@@ -64,7 +69,7 @@ func main() {
 	)
 
 	if *fileFlag != "" {
-		types, err = parse.Files([]string{*fileFlag}, *vFlag)
+		types, err = parse.Files([]string{*fileFlag}, *vFlag, *expandEmbeddedFlag)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -72,7 +77,7 @@ func main() {
 		if err = parse.Directory(*inFlag, *recursiveFlag, &files, *vFlag); err != nil {
 			log.Fatalln(err)
 		}
-		types, err = parse.Files(files, *vFlag)
+		types, err = parse.Files(files, *vFlag, *expandEmbeddedFlag)
 		if err != nil {
 			log.Fatalln(err)
 		}

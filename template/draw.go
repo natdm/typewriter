@@ -5,7 +5,7 @@ import (
 
 	"sort"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Draw draws all types to a writer.

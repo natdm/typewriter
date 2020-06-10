@@ -62,12 +62,11 @@ export type Event = {
 }
 
 // Example represents most of what TW can do.
-export type Example = {
+export type Example = Embedded & {
 	basic: string, // basic types
 	maps: { [key: string]: Event }, // map types
 	slices_too: Array<Event>, // slices
 	event_pointer: ?Event, // pointers
-	created_at: Date// manually overriding field with a name
 }
 ```
 
@@ -105,6 +104,11 @@ Flags:
 	-r
 		Transcends directories
 		default:	true
+
+	-e
+		Expand embedded structs into fields.
+		If false, intersection types will be used instead (for "flow" and "ts").
+		default:	false
 
 	-v
 		Verbose logging, detailing every skipped type, file, or field.
