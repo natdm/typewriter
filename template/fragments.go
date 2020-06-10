@@ -31,10 +31,10 @@ type langTemplates struct {
 }
 
 // newTemplate returns the template string for a language and a string
-func newTemplate(tpl string) (*template.Template, error) {
-	return template.New("dummy").
+func newTemplate(tpl string) *template.Template {
+	return template.Must(template.New("dummy").
 		Funcs(funcMap).
-		Parse(tpl)
+		Parse(tpl))
 }
 
 var elmTemplates = langTemplates{

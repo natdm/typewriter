@@ -27,11 +27,7 @@ var errNoType = errors.New("type not stored in package level type declaration")
 
 // Header is the file header
 func Header(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(templates[lang].header)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, nil)
+	return newTemplate(templates[lang].header).Execute(w, nil)
 }
 
 // Raw is a template with raw input in it
@@ -51,12 +47,7 @@ type TimeType struct {
 }
 
 func (t *TimeType) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(templates[lang].timeType)
-	if err != nil {
-		return err
-	}
-
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].timeType).Execute(w, t)
 }
 
 // PackageType is a package-level type. Any package type will
@@ -69,11 +60,7 @@ type PackageType struct {
 }
 
 func (t *PackageType) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(templates[lang].declaration)
-	if err != nil {
-		return err
-	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := newTemplate(templates[lang].declaration).Execute(w, t); err != nil {
 		return err
 	}
 	if t.Type == nil {
@@ -91,11 +78,7 @@ type Basic struct {
 }
 
 func (t *Basic) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(templates[lang].basic)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].basic).Execute(w, t)
 }
 
 func (t *Basic) IsPointer() bool {
@@ -108,32 +91,20 @@ type Map struct {
 }
 
 func (t *Map) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(templates[lang].mapKey)
-	if err != nil {
+	if err := newTemplate(templates[lang].mapKey).Execute(w, t); err != nil {
 		return err
 	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := t.Key.Template(w, lang); err != nil {
 		return err
 	}
-	if err = t.Key.Template(w, lang); err != nil {
-		return err
-	}
-	tmpl, err = newTemplate(templates[lang].mapValue)
-	if err != nil {
-		return err
-	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := newTemplate(templates[lang].mapValue).Execute(w, t); err != nil {
 		return err
 	}
 
-	if err = t.Value.Template(w, lang); err != nil {
+	if err := t.Value.Template(w, lang); err != nil {
 		return err
 	}
-	tmpl, err = newTemplate(templates[lang].mapClose)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].mapClose).Execute(w, t)
 }
 
 func (t *Map) IsPointer() bool {
@@ -146,21 +117,13 @@ type Array struct {
 }
 
 func (t *Array) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(templates[lang].arrayOpen)
-	if err != nil {
+	if err := newTemplate(templates[lang].arrayOpen).Execute(w, t); err != nil {
 		return err
 	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := t.Type.Template(w, lang); err != nil {
 		return err
 	}
-	if err = t.Type.Template(w, lang); err != nil {
-		return err
-	}
-	tmpl, err = newTemplate(templates[lang].arrayClose)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].arrayClose).Execute(w, t)
 }
 
 func (t *Array) IsPointer() bool {
@@ -179,48 +142,28 @@ type Struct struct {
 }
 
 func (t *Struct) Template(w io.Writer, lang Language) error {
-	tmpl, err := newTemplate(templates[lang].structOpen)
-	if err != nil {
-		return err
-	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := newTemplate(templates[lang].structOpen).Execute(w, t); err != nil {
 		return err
 	}
 	for i, v := range t.Fields {
-		if err = v.Template(w, lang); err != nil {
+		if err := v.Template(w, lang); err != nil {
 			return err
 		}
 		if i < len(t.Fields)-1 {
-			tmpl, err = newTemplate(templates[lang].fieldClose)
-			if err != nil {
+			if err := newTemplate(templates[lang].fieldClose).Execute(w, nil); err != nil {
 				return err
 			}
-			if err = tmpl.Execute(w, nil); err != nil {
-				return err
-			}
-			tmpl, err = newTemplate(templates[lang].comment)
-			if err != nil {
-				return err
-			}
-			if err = tmpl.Execute(w, v); err != nil {
+			if err := newTemplate(templates[lang].comment).Execute(w, v); err != nil {
 				return err
 			}
 		} else {
-			tmpl, err = newTemplate(templates[lang].comment)
-			if err != nil {
-				return err
-			}
-			if err = tmpl.Execute(w, v); err != nil {
+			if err := newTemplate(templates[lang].comment).Execute(w, v); err != nil {
 				return err
 			}
 			Raw(w, "\n")
 		}
 	}
-	tmpl, err = newTemplate(templates[lang].structClose)
-	if err != nil {
-		return err
-	}
-	return tmpl.Execute(w, t)
+	return newTemplate(templates[lang].structClose).Execute(w, t)
 }
 
 // Field is a struct field
@@ -247,7 +190,6 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	default:
 	}
 
-	tmpl, err := newTemplate(templates[lang].fieldName)
 	basicType, isBasic := t.Type.(*Basic)
 	if lang == Typescript && isBasic {
 		// Special case for TS: top-level nullable type is written as
@@ -262,10 +204,7 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 		}
 	}
 
-	if err != nil {
-		return err
-	}
-	if err = tmpl.Execute(w, t); err != nil {
+	if err := newTemplate(templates[lang].fieldName).Execute(w, t); err != nil {
 		return err
 	}
 
