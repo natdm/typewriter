@@ -264,8 +264,11 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 				fld.Name = v.Names[0].Name
 			}
 
+			if v.Doc != nil {
+				fld.DocComment = strings.TrimSuffix(v.Doc.Text(), "\n")
+			}
 			if v.Comment != nil {
-				fld.Comment = strings.TrimSuffix(v.Comment.Text(), "\n")
+				fld.LineComment = strings.TrimSuffix(v.Comment.Text(), "\n")
 			}
 
 			if v.Tag != nil && strings.Contains(v.Tag.Value, "json:\"-\"") {

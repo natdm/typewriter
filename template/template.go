@@ -164,6 +164,12 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 		return err
 	}
 	for i, v := range t.Fields {
+		if v.DocComment != "" {
+			w.Write([]byte{'\n'})
+			if err := newTemplate(templates[lang].fieldDocComment).Execute(w, v); err != nil {
+				return err
+			}
+		}
 		if err := v.Template(w, lang); err != nil {
 			return err
 		}
@@ -171,11 +177,11 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 			if err := newTemplate(templates[lang].fieldClose).Execute(w, nil); err != nil {
 				return err
 			}
-			if err := newTemplate(templates[lang].comment).Execute(w, v); err != nil {
+			if err := newTemplate(templates[lang].fieldLineComment).Execute(w, v); err != nil {
 				return err
 			}
 		} else {
-			if err := newTemplate(templates[lang].comment).Execute(w, v); err != nil {
+			if err := newTemplate(templates[lang].fieldLineComment).Execute(w, v); err != nil {
 				return err
 			}
 			Raw(w, "\n")
@@ -186,10 +192,11 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 
 // Field is a struct field
 type Field struct {
-	Name    string
-	Type    TypeSpec
-	Comment string
-	Tag     string
+	Name        string
+	Type        TypeSpec
+	DocComment  string
+	LineComment string
+	Tag         string
 }
 
 func (t *Field) Template(w io.Writer, lang Language) error {
