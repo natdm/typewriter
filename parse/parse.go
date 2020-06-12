@@ -242,16 +242,27 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 				log.WithError(err).Error("error parsing types")
 				continue FIELDLOOP
 			}
-			if v.Names == nil {
-				// No names on a type means it is embedded
-				str.Embedded = append(str.Embedded, strings.TrimSpace(string(bs[v.Type.Pos()-2:v.Type.End()-1])))
-				continue FIELDLOOP
-			}
-			if v.Names[0] == nil {
-				continue FIELDLOOP
-			}
+
 			fld := template.Field{}
 			fld.Type = typ
+			if v.Names == nil {
+				// No names on a field means it is embedded
+				jsonName := ""
+				if v.Tag != nil {
+					jsonName = strings.Split(template.GetTag("json", v.Tag.Value), ",")[0]
+				}
+				if jsonName == "" {
+					str.Embedded = append(str.Embedded, strings.TrimSpace(string(bs[v.Type.Pos()-2:v.Type.End()-1])))
+					continue FIELDLOOP
+				} else {
+					// A hack to try and process an embedded field as a normal one
+					fld.Name = jsonName
+				}
+			} else if v.Names[0] == nil {
+				continue FIELDLOOP
+			} else {
+				fld.Name = v.Names[0].Name
+			}
 
 			if v.Comment != nil {
 				fld.Comment = strings.TrimSuffix(v.Comment.Text(), "\n")
@@ -270,7 +281,6 @@ func Type(bs []byte, ts *ast.TypeSpec, verbose bool, flags commentFlags) (*templ
 				fld.Tag = v.Tag.Value
 			}
 
-			fld.Name = v.Names[0].Name
 			str.Fields = append(str.Fields, fld)
 		}
 		s.Type = str

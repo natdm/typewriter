@@ -193,7 +193,7 @@ type Field struct {
 }
 
 func (t *Field) Template(w io.Writer, lang Language) error {
-	jsonName := strings.Split(getTag("json", t.Tag), ",")[0]
+	jsonName := strings.Split(GetTag("json", t.Tag), ",")[0]
 	if jsonName != "" {
 		t.Name = jsonName
 	}
@@ -227,7 +227,7 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	}
 
 	// If there is an override type on the struct field
-	override := strings.Split(getTag("tw", t.Tag), ",")
+	override := strings.Split(GetTag("tw", t.Tag), ",")
 	switch len(override) {
 	case 2:
 		ptr, err := strconv.ParseBool(string(override[1]))
@@ -249,7 +249,7 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	return t.Type.Template(w, lang)
 }
 
-func getTag(tag string, tags string) string {
+func GetTag(tag string, tags string) string {
 	loc := strings.Index(tags, fmt.Sprintf("%s:\"", tag))
 	if loc <= -1 {
 		return ""
