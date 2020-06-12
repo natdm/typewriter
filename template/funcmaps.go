@@ -95,6 +95,6 @@ func lineComment(prefix string) func(string) string {
 		if c == "" {
 			return c
 		}
-		return prefix + " " + c
+		return " " + prefix + " " + c
 	}
 }

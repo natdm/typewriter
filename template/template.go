@@ -174,17 +174,17 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 			return err
 		}
 		if i < len(t.Fields)-1 {
-			if err := newTemplate(templates[lang].fieldClose).Execute(w, nil); err != nil {
-				return err
-			}
-			if err := newTemplate(templates[lang].fieldLineComment).Execute(w, v); err != nil {
+			if err := newTemplate(templates[lang].fieldClose).Execute(w, v); err != nil {
 				return err
 			}
 		} else {
-			if err := newTemplate(templates[lang].fieldLineComment).Execute(w, v); err != nil {
+			tpl := templates[lang].lastFieldClose
+			if tpl == "" {
+				tpl = templates[lang].fieldClose
+			}
+			if err := newTemplate(tpl).Execute(w, v); err != nil {
 				return err
 			}
-			Raw(w, "\n")
 		}
 	}
 	return newTemplate(templates[lang].structClose).Execute(w, t)

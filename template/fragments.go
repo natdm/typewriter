@@ -14,23 +14,23 @@ var templates = map[Language]langTemplates{
 }
 
 type langTemplates struct {
-	header           string
-	arrayOpen        string
-	arrayClose       string
-	arrayShortOpen   string
-	arrayShortClose  string
-	basic            string
-	fieldLineComment string
-	fieldDocComment  string
-	declaration      string
-	fieldClose       string
-	fieldName        string
-	mapClose         string
-	mapKey           string
-	mapValue         string
-	structClose      string
-	structOpen       string
-	timeType         string
+	header          string
+	arrayOpen       string
+	arrayClose      string
+	arrayShortOpen  string
+	arrayShortClose string
+	basic           string
+	fieldDocComment string
+	declaration     string
+	fieldClose      string
+	lastFieldClose  string
+	fieldName       string
+	mapClose        string
+	mapKey          string
+	mapValue        string
+	structClose     string
+	structOpen      string
+	timeType        string
 }
 
 // newTemplate returns the template string for a language and a string
@@ -45,23 +45,25 @@ var elmTemplates = langTemplates{
 -- http://www.github.com/natdm/typewriter
 
 `,
-	arrayOpen:        ` List`,
-	arrayClose:       ``,
-	arrayShortOpen:   ` List`,
-	arrayShortClose:  ``,
-	basic:            ` {{updateElmType .Type}}`,
-	fieldDocComment:  `{{elmMultilineComment .DocComment 1}}`,
-	fieldLineComment: ` {{elmComment .LineComment}}`,
+	arrayOpen:       ` List`,
+	arrayClose:      ``,
+	arrayShortOpen:  ` List`,
+	arrayShortClose: ``,
+	basic:           ` {{updateElmType .Type}}`,
+	fieldDocComment: `{{elmMultilineComment .DocComment 1}}`,
 	declaration: `
 {{elmMultilineComment .Comment 0}}type alias {{.Name}} : `,
-	fieldClose: `,`,
+	fieldClose: `,{{elmComment .LineComment}}
+`,
+	lastFieldClose: `{{elmComment .LineComment}}
+`, // Elm has no trailing comma support
 	fieldName: `	{{.Name}} :`,
 	mapClose:    ``,
 	mapKey:      `Dict `,
 	mapValue:    ` `,
 	structClose: `}`,
 	structOpen: `
-{ `,
+{`,
 	timeType: "Date",
 }
 
@@ -71,23 +73,22 @@ var flowTemplates = langTemplates{
 // http://www.github.com/natdm/typewriter
 
 `,
-	arrayOpen:        `Array<`,
-	arrayClose:       `>`,
-	arrayShortOpen:   ``,
-	arrayShortClose:  `[]`,
-	basic:            `{{if .Pointer}}?{{end}}{{updateFlowType .Type}}`,
-	fieldDocComment:  `{{flowMultilineComment .DocComment 1}}`,
-	fieldLineComment: `{{flowComment .LineComment}}`,
+	arrayOpen:       `Array<`,
+	arrayClose:      `>`,
+	arrayShortOpen:  ``,
+	arrayShortClose: `[]`,
+	basic:           `{{if .Pointer}}?{{end}}{{updateFlowType .Type}}`,
+	fieldDocComment: `{{flowMultilineComment .DocComment 1}}`,
 	declaration: `
 {{flowMultilineComment .Comment 0}}export type {{.Name}} = `,
-	fieldClose: `,
+	fieldClose: `,{{flowComment .LineComment}}
 `,
 	fieldName: `	{{.Name}}: `,
 	mapClose:    ` }`,
 	mapKey:      `{ [key: `,
 	mapValue:    `]: `,
 	structClose: `{{ range .Embedded}}{{.}} & {{end}}{{if .Strict}}|}{{else}}}{{end}}`,
-	structOpen: `{{if .Strict}}{| {{else}}{ {{end}}
+	structOpen: `{{"{"}}{{if .Strict}}|{{end}}
 `,
 	timeType: "Date",
 }
@@ -97,16 +98,15 @@ var tsTemplates = langTemplates{
 // http://www.github.com/natdm/typewriter
 
 `,
-	arrayOpen:        `Array<`,
-	arrayClose:       `>`,
-	arrayShortOpen:   ``,
-	arrayShortClose:  `[]`,
-	basic:            `{{updateTSType .Type}}{{if .Pointer}} | undefined{{end}}`,
-	fieldDocComment:  `{{tsMultilineComment .DocComment 1}}`,
-	fieldLineComment: `{{tsComment .LineComment}}`,
+	arrayOpen:       `Array<`,
+	arrayClose:      `>`,
+	arrayShortOpen:  ``,
+	arrayShortClose: `[]`,
+	basic:           `{{updateTSType .Type}}{{if .Pointer}} | undefined{{end}}`,
+	fieldDocComment: `{{tsMultilineComment .DocComment 1}}`,
 	declaration: `
 {{tsMultilineComment .Comment 0}}type {{.Name}} = `,
-	fieldClose: `,
+	fieldClose: `,{{tsComment .LineComment}}
 `,
 	fieldName: `	{{.Name}}{{if .Type.IsPointer}}?{{end}}: `,
 	mapClose:    ` }`,
