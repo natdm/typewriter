@@ -216,6 +216,11 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	}
 
 	basicType, isBasic := t.Type.(*Basic)
+
+	if err := newTemplate(templates[lang].fieldName).Execute(w, t); err != nil {
+		return err
+	}
+
 	if lang == Typescript && isBasic {
 		// Special case for TS: top-level nullable type is written as
 		// field?: T
@@ -227,10 +232,6 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 			Type:    basicType.Type,
 			Pointer: false,
 		}
-	}
-
-	if err := newTemplate(templates[lang].fieldName).Execute(w, t); err != nil {
-		return err
 	}
 
 	// If there is an override type on the struct field
