@@ -40,11 +40,6 @@ type Nested struct {
 	Person struct{} `json:"person"`
 }
 
-// Embedded will take all types from the embedded types and insert them in to the new type.
-type Embedded struct {
-	Person
-}
-
 // EmbeddedGormModelTest represents a model that has an embedded type in it.
 type EmbeddedGormModelTest struct {
 	gorm.Model

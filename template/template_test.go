@@ -22,15 +22,15 @@ func (s *TemplateTestSuite) TestFlowTemplatePackageTypes() {
 		Type: &Struct{
 			Fields: []Field{
 				{
-					Name:    "MapStringMap",
-					Type:    &Map{Key: &Basic{"string", true}, Value: &Map{Key: &Basic{"string", true}, Value: &Basic{"string", true}}},
-					Comment: "I am a map of strings and ints",
-					Tag:     `json:"map_string_map"`,
+					Name:        "MapStringMap",
+					Type:        &Map{Key: &Basic{"string", true}, Value: &Map{Key: &Basic{"string", true}, Value: &Basic{"string", true}}},
+					LineComment: "I am a map of strings and ints",
+					Tag:         `json:"map_string_map"`,
 				}, {
-					Name:    "MapStringInts",
-					Type:    &Map{Key: &Basic{"string", false}, Value: &Array{Type: &Basic{"number", false}}},
-					Comment: "I am a map of strings to a slice of ints",
-					Tag:     `json:"map_string_ints"`,
+					Name:        "MapStringInts",
+					Type:        &Map{Key: &Basic{"string", false}, Value: &Array{Type: &Basic{"number", false}}},
+					LineComment: "I am a map of strings to a slice of ints",
+					Tag:         `json:"map_string_ints"`,
 				},
 			},
 		},
@@ -40,9 +40,9 @@ func (s *TemplateTestSuite) TestFlowTemplatePackageTypes() {
 	s.Require().NoError(p.Template(buf, Flow))
 	expected := `
 // ... Comment
-export type Maps = { 
+export type Maps = {
 	map_string_map: { [key: ?string]: { [key: ?string]: ?string } }, // I am a map of strings and ints
-	map_string_ints: { [key: string]: Array<number> }// I am a map of strings to a slice of ints
+	map_string_ints: { [key: string]: number[] }, // I am a map of strings to a slice of ints
 }`
 	s.EqualValues(expected, buf.String())
 }
@@ -83,7 +83,7 @@ func (s *TemplateTestSuite) TestFlowTemplateArrayOfCustom() {
 	s.Require().NoError(p.Template(buf, Flow))
 	expected := `
 // ... Comment
-export type CustomTypeArray = Array<CustomType>`
+export type CustomTypeArray = CustomType[]`
 	s.Equal(expected, buf.String())
 }
 
@@ -103,7 +103,7 @@ func (s *TemplateTestSuite) TestFlowTemplateArrayOfInts() {
 	s.Require().NoError(p.Template(buf, Flow))
 	expected := `
 // ... Comment
-export type Array = Array<number>`
+export type Array = number[]`
 	s.Equal(expected, buf.String())
 }
 

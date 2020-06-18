@@ -25,15 +25,15 @@ const (
 )
 
 var funcMap = template.FuncMap{
-	"updateFlowType":  updateTypes(conversions[Flow]),
-	"updateElmType":   updateTypes(conversions[Elm]),
-	"updateTSType":    updateTypes(conversions[Typescript]),
-	"flowComment":     langComment("//"),
-	"elmComment":      langComment("--"),
-	"tsComment":       langComment("//"),
-	"flowTypeComment": typeComment("//"),
-	"elmTypeComment":  typeComment("--"),
-	"tsTypeComment":   typeComment("//"),
+	"updateFlowType":       updateTypes(conversions[Flow]),
+	"updateElmType":        updateTypes(conversions[Elm]),
+	"updateTSType":         updateTypes(conversions[Typescript]),
+	"flowComment":          lineComment("//"),
+	"elmComment":           lineComment("--"),
+	"tsComment":            lineComment("//"),
+	"flowMultilineComment": multilineComment("//"),
+	"elmMultilineComment":  multilineComment("--"),
+	"tsMultilineComment":   multilineComment("//"),
 }
 
 const goInt = "int64|int32|int16|int8|int|uint64|uint32|uint16|uint8|uint|byte|rune"
@@ -80,27 +80,21 @@ func updateTypes(replacements map[string]*regexp.Regexp) func(string) string {
 	}
 }
 
-func typeComment(prefix string) func(string) string {
-	return func(c string) string {
+func multilineComment(prefix string) func(string, int) string {
+	return func(c string, indent int) string {
 		if c == "" {
 			return c
 		}
-		out := ""
-		sp := strings.Split(c, "\n")
-		for i, v := range sp {
-			if i != len(sp)-1 {
-				out += prefix + " " + v + "\n"
-			}
-		}
-		return out
+		lineStart := strings.Repeat("\t", indent) + prefix + " "
+		return lineStart + strings.ReplaceAll(strings.Trim(c, "\n"), "\n", "\n"+lineStart) + "\n"
 	}
 }
 
-func langComment(prefix string) func(string) string {
+func lineComment(prefix string) func(string) string {
 	return func(c string) string {
 		if c == "" {
 			return c
 		}
-		return prefix + " " + c
+		return " " + prefix + " " + c
 	}
 }

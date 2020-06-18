@@ -164,21 +164,27 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 		return err
 	}
 	for i, v := range t.Fields {
+		if v.DocComment != "" {
+			w.Write([]byte{'\n'})
+			if err := newTemplate(templates[lang].fieldDocComment).Execute(w, v); err != nil {
+				return err
+			}
+		}
 		if err := v.Template(w, lang); err != nil {
 			return err
 		}
 		if i < len(t.Fields)-1 {
-			if err := newTemplate(templates[lang].fieldClose).Execute(w, nil); err != nil {
-				return err
-			}
-			if err := newTemplate(templates[lang].comment).Execute(w, v); err != nil {
+			if err := newTemplate(templates[lang].fieldClose).Execute(w, v); err != nil {
 				return err
 			}
 		} else {
-			if err := newTemplate(templates[lang].comment).Execute(w, v); err != nil {
+			tpl := templates[lang].lastFieldClose
+			if tpl == "" {
+				tpl = templates[lang].fieldClose
+			}
+			if err := newTemplate(tpl).Execute(w, v); err != nil {
 				return err
 			}
-			Raw(w, "\n")
 		}
 	}
 	return newTemplate(templates[lang].structClose).Execute(w, t)
@@ -186,14 +192,15 @@ func (t *Struct) Template(w io.Writer, lang Language) error {
 
 // Field is a struct field
 type Field struct {
-	Name    string
-	Type    TypeSpec
-	Comment string
-	Tag     string
+	Name        string
+	Type        TypeSpec
+	DocComment  string
+	LineComment string
+	Tag         string
 }
 
 func (t *Field) Template(w io.Writer, lang Language) error {
-	jsonName := strings.Split(getTag("json", t.Tag), ",")[0]
+	jsonName := strings.Split(GetTag("json", t.Tag), ",")[0]
 	if jsonName != "" {
 		t.Name = jsonName
 	}
@@ -209,6 +216,11 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	}
 
 	basicType, isBasic := t.Type.(*Basic)
+
+	if err := newTemplate(templates[lang].fieldName).Execute(w, t); err != nil {
+		return err
+	}
+
 	if lang == Typescript && isBasic {
 		// Special case for TS: top-level nullable type is written as
 		// field?: T
@@ -222,12 +234,8 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 		}
 	}
 
-	if err := newTemplate(templates[lang].fieldName).Execute(w, t); err != nil {
-		return err
-	}
-
 	// If there is an override type on the struct field
-	override := strings.Split(getTag("tw", t.Tag), ",")
+	override := strings.Split(GetTag("tw", t.Tag), ",")
 	switch len(override) {
 	case 2:
 		ptr, err := strconv.ParseBool(string(override[1]))
@@ -249,7 +257,7 @@ func (t *Field) Template(w io.Writer, lang Language) error {
 	return t.Type.Template(w, lang)
 }
 
-func getTag(tag string, tags string) string {
+func GetTag(tag string, tags string) string {
 	loc := strings.Index(tags, fmt.Sprintf("%s:\"", tag))
 	if loc <= -1 {
 		return ""
